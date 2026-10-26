@@ -101,3 +101,7 @@ Widok kampanii jest podzielony na sześć zakładek: Kampania, Województwa, Son
 Specjalistów (maksymalnie trzech jednocześnie) zatrudnia się i zwalnia bezpośrednio w zakładce **Sztab**, niezależnie od czterech etapów tygodniowej tury. Zatrudnienie kosztuje 3200 zł, a cotygodniowe utrzymanie każdego specjalisty 170 zł. Zwolnienie jest darmowe, ale nie zwraca kosztu rekrutacji. Kierownictwo fabularne z lojalnością to oddzielny system rozmów i premii.
 
 Na ekranie **Kampania** wyświetlana jest krótka instrukcja bieżącego etapu (1/4–4/4), zamiast kolejnej długiej listy wyjaśnień. Naprawiono także awaryjny wybór wolontariuszy, gdy gracz nie może opłacić żadnej opcji wydarzenia. Po zmianach poprawnie ukończono 20 symulacji pełnej kampanii, w tym wariant startujący z zerowym budżetem.
+
+## Tworzenie kandydata
+
+Na ekranie startowym możesz podać imię i nazwisko kandydata, wybrać płeć oraz jeden z czterech portretów. Dane postaci zapisują się w pliku stanu gry i pojawiają się podczas kampanii oraz na ekranie wyników. Pliki portretów powinny znaleźć się w `assets/candidates/` pod nazwami `man-1.jpg` – `man-4.jpg` i `woman-1.jpg` – `woman-4.jpg`. Zestaw tych 8 portretów został przygotowany osobno jako archiwum ZIP, ponieważ same pliki JPG nie zostały jeszcze dodane do repozytorium. Bez ich skopiowania przeglądarka nie wyświetli obrazów.
