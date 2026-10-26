@@ -1,57 +1,6 @@
 (function(){
 'use strict';
-const regions=[
-{id:'stolica',name:'Stolica Nowin',seats:25,weight:1.4,urban:3,lean:[2,0,-1,1,2]},
-{id:'nadwisle',name:'Nadwiśle',seats:23,weight:1.3,urban:2,lean:[2,-1,1,1,-1]},
-{id:'zaglebie',name:'Zagłębie',seats:22,weight:1.2,urban:1,lean:[-1,0,3,0,-1]},
-{id:'wybrzeze',name:'Północne Wybrzeże',seats:21,weight:1.1,urban:2,lean:[1,0,0,2,1]},
-{id:'pojezierze',name:'Pojezierze',seats:20,weight:1.1,urban:0,lean:[-1,3,1,-1,2]},
-{id:'pogranicze',name:'Wschodnie Pogranicze',seats:19,weight:1,urban:0,lean:[-2,3,2,0,-1]},
-{id:'wyzyna',name:'Wyżyna',seats:18,weight:1,urban:1,lean:[0,2,2,-1,0]},
-{id:'zachod',name:'Zachodnie Miasta',seats:17,weight:.9,urban:3,lean:[1,0,-1,2,1]},
-{id:'dolina',name:'Dolina Południa',seats:15,weight:.8,urban:1,lean:[-1,2,2,0,-1]}
-];
-const rivals=[
-{id:'po',name:'Front Obywatelski',short:'FO',base:25,axis:2,color:'#5c6f75'},
-{id:'zr',name:'Związek Regionów',short:'ZR',base:19,axis:3,color:'#85673e'},
-{id:'ps',name:'Solidarność Społeczna',short:'SS',base:21,axis:1,color:'#9a5944'},
-{id:'rp',name:'Ruch Przedsiębiorczy',short:'RP',base:17,axis:4,color:'#4f634d'},
-{id:'ep',name:'Zielona Przyszłość',short:'ZP',base:12,axis:0,color:'#7d8454'}
-];
-const profiles={
-economy:{label:'Rozwój gospodarczy',description:'Inwestycje, miejsca pracy i przedsiębiorczość.',axis:4,affinity:['economy','jobs','infrastructure','trade']},
-social:{label:'Państwo usług publicznych',description:'Zdrowie, mieszkania i edukacja.',axis:1,affinity:['health','housing','education','jobs']},
-green:{label:'Nowa energia',description:'Ekologia, technologie i czyste powietrze.',axis:0,affinity:['environment','science','infrastructure','housing']},
-regional:{label:'Silne regiony',description:'Samorządy, lokalne firmy i transport.',axis:3,affinity:['regions','infrastructure','trade','housing']},
-freedom:{label:'Wolność obywatelska',description:'Przejrzystość, prawo i innowacje.',axis:2,affinity:['media','science','security','culture']}
-};
-const origins={
-organizer:{label:'Działacz społeczny',description:'Więcej wolontariuszy, niewielki budżet.',budget:25000,trust:64,org:30,awareness:13},
-journalist:{label:'Dziennikarz',description:'Znasz media, ale nie masz struktur.',budget:27000,trust:57,org:17,awareness:29},
-mayor:{label:'Samorządowiec',description:'Silne struktury regionalne i doświadczenie.',budget:29000,trust:61,org:27,awareness:22},
-entrepreneur:{label:'Przedsiębiorca',description:'Kapitał na start; wyborcy są ostrożni.',budget:41000,trust:47,org:15,awareness:17}
-};
-const advisers=[
-{id:'press',name:'Redaktorka sztabu',desc:'Komunikacja: +2 do wpływu medialnego i mniej kryzysów.',cost:3200},
-{id:'finance',name:'Skarbnik',desc:'Finanse: zbiórki przynoszą więcej pieniędzy.',cost:3200},
-{id:'field',name:'Organizatorka terenu',desc:'Struktury: silniejsze akcje regionalne.',cost:3200},
-{id:'analyst',name:'Analityk sondaży',desc:'Strategia: większy efekt decyzji opartych na programie.',cost:3200}
-];
-const regionActions=[
-{id:'visit',label:'Objazd i wiec lokalny',cost:1500,desc:'Duży wzrost poparcia w regionie, trochę rozpoznawalności.',effect:{region:2.7,awareness:1,energy:-7}},
-{id:'meet',label:'Spotkanie w świetlicy',cost:700,desc:'Wiarygodność i umiarkowany wzrost poparcia.',effect:{region:1.6,trust:2,energy:-5}},
-{id:'volunteers',label:'Zbuduj sieć wolontariuszy',cost:500,desc:'Rozwój struktur, długoterminowy wzrost siły kampanii.',effect:{region:.5,org:5,energy:-6}},
-{id:'radio',label:'Wykup lokalną audycję',cost:2700,desc:'Wysoki zasięg i poparcie w wybranym regionie.',effect:{region:3.4,awareness:2,trust:-1,energy:-3}},
-{id:'pause',label:'Dzień bez wyjazdu',cost:0,desc:'Odpocznij i odzyskaj energię.',effect:{energy:10}}
-];
-const nationalActions=[
-{id:'digital',label:'Akcja informacyjna w sieci',cost:1800,desc:'Wzrost rozpoznawalności i niewielki wzrost poparcia.',effect:{national:.35,awareness:5,energy:-4}},
-{id:'television',label:'Występ w telewizji',cost:4800,desc:'Duży zasięg, mocne obciążenie budżetu.',effect:{national:1.2,awareness:8,energy:-8}},
-{id:'debate',label:'Publiczna debata ekspertów',cost:1100,desc:'Wzrost wiarygodności i poparcia.',effect:{national:.35,trust:3,energy:-7}},
-{id:'fundraise',label:'Zbiórka wśród sympatyków',cost:0,desc:'Zbierasz fundusze, lecz tracisz okazję na kampanię.',effect:{budget:6400,trust:-1,energy:-3}},
-{id:'training',label:'Szkolenie struktur',cost:900,desc:'Wolniejszy postęp dziś, silniejsza organizacja jutro.',effect:{org:6,energy:-5}},
-{id:'rest',label:'Odpoczynek i analiza',cost:0,desc:'Regeneracja sztabu i zmniejszenie napięcia.',effect:{energy:16,heat:-8}}
-];
+// Jedno źródło geografii i rywali znajduje się w game.js.
 const options={
 economy:[
 ['Ujawnij szczegółowy program inwestycji',{budget:-2200,trust:3,national:.65,energy:-4}],
@@ -293,5 +242,5 @@ const milestones={
 28:{title:'Debata przed ciszą wyborczą',body:'Ostatnie starcie kandydatów ogląda cała republika. Każde słowo może zdecydować o mandatach.',topic:'media',options:[['Postaw na spokojny finał',{trust:6,national:1.25}],['Uderz w przeciwników',{awareness:9,national:2,trust:-5,heat:9}],['Wezwij do współpracy',{trust:5,national:1.4,org:2}]]}
 };
 const pool=Object.entries(raw).flatMap(([topic,items])=>items.map((entry,index)=>{const p=entry.split('|');return {id:topic+'-'+index,topic,title:p[0],body:p[1],options:options[topic]}}));
-window.WYBORY_DATA={regions,rivals,profiles,origins,advisers,regionActions,nationalActions,pool,milestones};
+window.WYBORY_DATA={pool,milestones};
 })();
