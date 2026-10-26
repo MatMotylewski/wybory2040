@@ -11,7 +11,7 @@ function boot(){
  const ctx={window:{WYBORY_DATA:null,scrollTo(){}},document:doc,navigator:{clipboard:{writeText:()=>Promise.resolve()}},Blob:class{},URL:{createObjectURL:()=>'',revokeObjectURL(){}},setTimeout:()=>{},alert(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}};
  vm.createContext(ctx);
  vm.runInContext(data,ctx,{filename:'data.js'});
- vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,eventCost,seats,national,planAction,finishTurn,manageStaff,trainStaff,transactFinance,coalition,negotiate,getState:()=>S};',ctx,{filename:'game.js'});
+ vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,eventCost,seats,national,planAction,finishTurn,manageStaff,vacateLeader,hireLeader,trainStaff,weeklyStaffCost,transactFinance,coalition,negotiate,getState:()=>S};',ctx,{filename:'game.js'});
  return {api:ctx.TEST_API,get,storage,library:ctx.window.WYBORY_DATA};
 }
 test('full library and newspaper interface',()=>{
@@ -26,13 +26,51 @@ test('full library and newspaper interface',()=>{
  api.start();
  assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,16);
  assert.match(get('electionAtlas').innerHTML,/<path class="territory/);
- assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,8);
+ assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,4);
 });
-test('team hiring and training',()=>{
- const {api}=boot();api.start();let before=api.getState().money;
- api.manageStaff('field');assert.ok(api.getState().staff.includes('field'));assert.equal(api.getState().money,before-3200);
- api.trainStaff('field');assert.equal(api.getState().staffLevels.field,2);
- api.manageStaff('field');assert.ok(!api.getState().staff.includes('field'));
+test('four founders, vacancy, three prospects, paid replacement and reset',()=>{
+ const {api,get}=boot();api.start();
+ let people=api.getState().people;
+ assert.equal(people.filter(p=>p.active).length,4);
+ assert.equal(api.weeklyStaffCost(),760);
+ assert.equal(api.getState().staff.length,4);
+ const startingCash=api.getState().money;
+ assert.equal(api.vacateLeader('organizer'),true);
+ assert.ok(!api.getState().staff.includes('field'),'dismissal removes staff bonus');
+ assert.equal(api.weeklyStaffCost(),600,'wage stops at dismissal');
+ assert.equal(api.getState().people.find(p=>p.id==='organizer').name,'','slot remains visibly empty');
+ assert.equal((get('staffDesk').innerHTML.match(/data-staff-hire="organizer"/g)||[]).length,3,'three candidates for vacant position');
+ assert.equal(api.hireLeader('organizer','t-ewa'),true);
+ let person=api.getState().people.find(p=>p.id==='organizer');
+ assert.equal(person.name,'Ewa Lewicka');
+ assert.equal(person.level,1);
+ assert.equal(person.skill,2.1);
+ assert.equal(person.loyalty,49);
+ assert.equal(api.getState().money,startingCash-4500);
+ assert.equal(api.weeklyStaffCost(),1010);
+ assert.equal(api.trainStaff('field'),true);
+ assert.equal(api.getState().people.find(p=>p.id==='organizer').level,2);
+ assert.equal(api.vacateLeader('organizer'),true);
+ assert.equal(api.hireLeader('organizer','t-anna'),true);
+ person=api.getState().people.find(p=>p.id==='organizer');
+ assert.equal(person.name,'Anna Ryś');
+ assert.equal(person.level,1,'replacement does not inherit training');
+ assert.equal(person.loyalty,82,'replacement has own fresh loyalty');
+ assert.equal(person.skill,1,'replacement has own fresh competence');
+ assert.equal(api.weeklyStaffCost(),745);
+ assert.ok(get('staffDesk').innerHTML.includes('Szef struktur terenowych'));
+});
+test('all four vacancies can be filled and wages are recalculated',()=>{
+ const {api}=boot();api.start();
+ for(const id of ['treasurer','spokesperson','organizer','strategist'])assert.ok(api.vacateLeader(id));
+ assert.equal(api.weeklyStaffCost(),0);
+ assert.equal(api.getState().staff.length,0);
+ assert.ok(api.hireLeader('treasurer','f-marta'));
+ assert.ok(api.hireLeader('spokesperson','m-zofia'));
+ assert.ok(api.hireLeader('organizer','t-anna'));
+ assert.ok(api.hireLeader('strategist','a-kuba'));
+ assert.equal(api.getState().staff.length,4);
+ assert.equal(api.weeklyStaffCost(),655);
 });
 test('72 campaigns complete across difficulty, origins and strategy',()=>{
  let campaigns=0,topics=new Set();
