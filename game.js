@@ -728,6 +728,7 @@ finish=function(){
  RESULT_FINISH();
  if(!$('electionNight')||!S)return;
  S.nightRound=0;
+ $('outcome').textContent='WERDYKT URN WYBORCZYCH';
  $('end').classList.add('election-pending');
  $('electionNight').classList.remove('hidden');
  $('nightTitle').textContent='Zamknięto lokale wyborcze';
@@ -751,6 +752,7 @@ $('nightNext')?.addEventListener('click',()=>{
  }else{
  $('nightTitle').textContent='WYNIKI ZATWIERDZONE';
  $('nightText').textContent='Komisja ogłosiła ostateczny podział wszystkich 180 mandatów.';
+ $('outcome').textContent=places[0]===Math.max(...places)?'Zwycięstwo wyborcze!':'Werdykt wyborców';
  $('end').classList.remove('election-pending');
  $('nightNext').classList.add('hidden');
  }
