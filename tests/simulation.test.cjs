@@ -34,6 +34,8 @@ test('static assets and narrative library',()=>{
  assert.match(html,/id="staffDesk"/);
  assert.match(html,/id="financeDesk"/);
  assert.match(html,/id="rivalDesk"/);
+ assert.match(html,/id="forecastDesk"/);
+ assert.match(html,/id="difficulty"/);
  assert.equal(Object.keys(data.milestones).length,6);
 });
 test('40 complete, distinct campaigns through parliament and coalition',()=>{
@@ -41,6 +43,7 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
  let headlines=new Set();
  for(let sim=0;sim<40;sim++){
   get('profile').value=['economy','social','green','freedom'][sim%4];
+  get('difficulty').value=['easy','normal','hard'][sim%3];
   api.start();api.getState().seed=sim*1901+347;
   if(sim===0){api.transactFinance('sponsor','citizens');assert.ok(api.getState().finance.sponsors.includes('citizens'));}
   if(sim===0){assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,9,'nine clickable map regions');assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,4,'four staff character cards');}
