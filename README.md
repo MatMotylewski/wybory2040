@@ -56,3 +56,7 @@ Kolejne pomysły (krótsza kampania, koalicje, rządzenie, transfery polityków,
 ## Karty postaci (wdrożone)
 
 Zakładka **Politycy** pokazuje karty czterech stanowisk kierownictwa, umożliwia otwarcie pełnego profilu i przejście do rekrutacji w przypadku wakatu. Profil zawiera imię i nazwisko, funkcję, lojalność, doświadczenie, umiejętność, tygodniową pensję oraz poglądowe parametry poparcia osobistego, debatowania i ryzyka kontrowersji. Te trzy ostatnie są na razie wartościami modelowymi wyliczanymi ze statystyk postaci, a nie niezależną mechaniką wyborów prezydenckich czy afer.
+
+## Statystyki polityków wpływają na rozgrywkę
+
+Aktualnie osobiste poparcie/rozpoznawalność członków kierownictwa wzmacnia objazdy regionalne i może rosnąć przez aktywność polityka. Umiejętności debatowania rzecznika prasowego wpływają na punktację trzyrundowych transmisji. Poziom kontrowersji zależy od lojalności, presji medialnej i wcześniejszych zdarzeń; może wywołać kryzys wokół polityka z trzema możliwymi reakcjami: niezależną kontrolą, odsunięciem albo publiczną obroną. Lojalność i zadłużenie sztabu wpływają na ryzyko konfliktów i odejść. Nadal są to fikcyjne parametry symulacji, nie rzeczywiste sondaże. Wybory prezydenckie pozostają zaplanowanym następnym etapem.
