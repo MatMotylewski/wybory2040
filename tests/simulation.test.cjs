@@ -49,6 +49,10 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
     return price<=api.getState().money?i:-1;
    }).filter(i=>i>=0);
    api.decide('event',affordable.length?affordable[sim%affordable.length]:99);
+   if([4,10,18,25].includes(week)){
+    assert.equal(api.getState().phase,4,'broadcast should open on week '+week);
+    for(let round=0;round<3;round++)api.decide('broadcast',sim%3);
+   }
    assert.equal(api.getState().phase,1,'week '+week+' event');
    api.decide('region',api.getState().money>=700?(sim+week)%9:9);
    assert.equal(api.getState().phase,2,'week '+week+' region');
