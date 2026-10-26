@@ -30,3 +30,18 @@ Otwórz `index.html` w przeglądarce. W tym samym katalogu muszą znajdować si�
 Nie ma kont, własnych cookies, bazy danych ani localStorage. Brak telemetrii i zapisu postępów na serwerze. Strona ładuje fonty z Google Fonts, co powoduje dodatkowe zapytanie do zewnętrznego serwisu. GitHub Pages może prowadzić standardowe logi hostingu.
 
 Wszystkie partie i regiony są fikcyjne. Symulacja nie przedstawia prawdziwych sondaży.
+
+## Aktualizacja: zatwierdzona szata graficzna
+
+Interfejs został dostosowany do zaakceptowanych makiet w stylistyce drukowanej gazety PRL: afisze, kremowy papier, czarne ramki, czerwone stemple, prasowe sondaże, panel dziewięciu regionów i pasek postępu kampanii. Zmiany dotyczą pliku `index.html` oraz widoków generowanych przez `game.js`.
+
+## Kontrola przebiegu
+
+Wykonano 100 automatycznych symulacji pełnych 30 tygodni z wyborem dostępnych finansowo decyzji. Każda kampania zakończyła się przeliczeniem 180 mandatów. W 100 podejściach wylosowano łącznie 135 różnych tematów spośród biblioteki 144 depesz; ponadto przewidziano 6 fabularnych punktów zwrotnych. Automatyczne testy logiki nie zastępują testów użyteczności na telefonie i nie potwierdzają jeszcze długości rozgrywki 2–3 godziny.
+
+## Kolejne zadania
+
+- Scenariuszowo powiązane wydarzenia i konsekwencje długoterminowe zamiast niezależnych depesz.
+- Interaktywna mapa kraju zamiast obecnego atlasu kafelkowego.
+- Minigra debaty oraz oddzielne ekrany mediów, finansów i sztabu.
+- Testy manualne, balans trudności i pomiar czasu kampanii.
