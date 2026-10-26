@@ -254,7 +254,7 @@ function renderBroadcast(){
  const b=S.broadcast,spec=broadcastForWeek();if(!b||!spec)return;
  const question=spec.rounds[b.round];$('phase').textContent='WYDANIE NA ŻYWO · '+(b.round+1)+' / '+spec.rounds.length;
  $('eventTitle').textContent=spec.title;
- $('eventText').textContent=spec.host+': „'+question.q+'”';
+ $('eventText').textContent=spec.host+' pyta '+(S.candidate?.name||'lidera partii')+': „'+question.q+'”';
  $('choices').innerHTML='<div class="frame"><b>Transmisja na żywo</b><p class="small">Każda odpowiedź wpływa na zaufanie, zainteresowanie mediów oraz napięcie. Wybierz, co powiesz.</p>'+
  question.a.map((answer,i)=>'<button class="option" data-kind="broadcast" data-i="'+i+'"><strong>'+esc(answer[0])+'</strong></button>').join('')+
  '<p class="small">Runda '+(b.round+1)+' z 3 · Zasięg: '+b.attention+' · Napięcie: '+b.pressure+'</p></div>';
@@ -671,7 +671,7 @@ function planningMarkup(){
 function reportMarkup(){
  const t=S.turn?.report;if(!t)return '';
  const val=(n,unit)=>((n>=0?'+':'')+n.toFixed(1)+unit);
- return '<section class="weekly-edition frame"><div class="kicker">DZIENNIK WYBORCZY / WYDANIE '+t.week+'</div><h2>TYDZIEŃ ZAMKNIĘTY</h2><p>Poparcie: <strong>'+val(t.delta,' pp')+'</strong> · Mandaty: <strong>'+((t.mandates>=0?'+':'')+t.mandates)+'</strong> · Zaufanie: <strong>'+((t.trust>=0?'+':'')+t.trust)+'</strong></p><p>Bilans: '+moneyFmt(t.spent)+' · Wykonane działania: '+(t.actions.map(id=>esc(PLAN_ACTIONS.find(a=>a.id===id)?.label||id)).join(', ')||'brak')+'.</p>'+
+ return '<section class="weekly-edition frame"><div class="kicker">DZIENNIK WYBORCZY / WYDANIE '+t.week+'</div><div class="candidate-header"><div class="candidate-campaign-photo">'+candidateImage(S.candidate?.gender||'male',S.candidate?.portrait||0,S.candidate?.name||'Lider partii')+'</div><div><h2>TYDZIEŃ ZAMKNIĘTY</h2><p class="small">'+esc(S.candidate?.name||'Lider partii')+' · '+esc(S.name)+'</p></div></div><p>Poparcie: <strong>'+val(t.delta,' pp')+'</strong> · Mandaty: <strong>'+((t.mandates>=0?'+':'')+t.mandates)+'</strong> · Zaufanie: <strong>'+((t.trust>=0?'+':'')+t.trust)+'</strong></p><p>Bilans: '+moneyFmt(t.spent)+' · Wykonane działania: '+(t.actions.map(id=>esc(PLAN_ACTIONS.find(a=>a.id===id)?.label||id)).join(', ')||'brak')+'.</p>'+
  (t.news.length?'<h3>Z OSTATNIEJ CHWILI</h3><p>'+t.news.map(esc).join('</p><p>')+'</p>':'')+'</section>';
 }
 render=function(){
