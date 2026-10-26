@@ -80,11 +80,57 @@ function render(){if(!S)return;const n=national();$('weekLabel').textContent='TY
 function decide(kind,index){if(!S||S.done)return;if(kind==='event'&&S.phase===0){const e=eventForWeek(),opts=e.options||e[2],o=opts[index];if(index===99&&opts.every(x=>eventCost(x)>S.money)){apply([0,0,0,0],-1,0);log('Doraźna akcja wolontariuszy')}else{if(!o||eventCost(o)>S.money)return;if(e.options){const v=o[1];S.money+=v.budget||0;S.trust=clamp(S.trust+(v.trust||0),0,100);S.groups=S.groups.map(x=>clamp(x+(v.national||0)*(.85+S.trust/300),3,70));S.regional=S.regional.map(x=>clamp(x+(v.org||0)/12,0,30))}else{apply(o[1],o[2],o[3])}log((e.title||e[0])+' — '+o[0])}S.phase=1;render();$('feedback').textContent='Korespondent: decyzja odnotowana w gazetach.';$('feedback').classList.remove('hidden')}else if(kind==='region'&&S.phase===1){if(index!==9){if(!REGIONS[index]||S.money<700)return;apply([0,0,0,0],1,700,index);log('Spotkanie w regionie '+REGIONS[index].name)}else{if(S.money>=700)return;log('Brak środków na wyjazd')}S.phase=2;render()}else if(kind==='action'&&S.phase===2){const a=ACTIONS[index];if(!a||S.money<a[1])return;apply(a[2],a[3],a[1]);log('Akcja sztabu — '+a[0]);S.done=true;render();$('choices').innerHTML='';$('eventTitle').textContent='Numer tygodnia zamknięty';$('eventText').textContent='Sondaże i rachunki zaktualizowane. Możesz przejść do następnego tygodnia.';$('next').textContent=S.week===29?'Otwórz urny wyborcze →':'Następny tydzień →';$('next').classList.remove('hidden');$('feedback').textContent='Kolejny numer gazety już w drukarni.';$('feedback').classList.remove('hidden')}}
 function next(){if(!S||!S.done)return;if(S.week===29){finish();return}S.week++;S.money+=1400;log('Regularne wpłaty członkowskie: +1 400 zł');S.phase=0;S.done=false;render();document.querySelector('.article').scrollIntoView({behavior:'smooth'})}
 function finish(){const n=national(),result=seats(),order=result.map((v,i)=>({i,v})).sort((a,b)=>b.v-a.v);$('outcome').textContent=order[0].i===0?'Zwycięstwo wyborcze!':'Werdykt wyborców';$('resultPct').textContent=n[0].toFixed(1)+'%';$('resultText').textContent=S.name+' zdobywa '+result[0]+' ze 180 mandatów. Do większości potrzeba 91 mandatów.';$('finalPoll').innerHTML=result.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v+' mandatów · '+n[i].toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+(v/180*100).toFixed(1)+'%"></div></div></div>').join('');$('coalitionButton').classList.toggle('hidden',result[0]===0);show('end')}
-function coalition(){const result=seats();$('coalitionSeats').textContent=result[0]+' / 91 mandatów';$('coalitionDesc').textContent='Wybierz partie do rozmów. Porozumienie wymaga co najmniej 91 mandatów, lecz nie każdy sojusz będzie możliwy.';$('partners').innerHTML=RIVALS.map((r,i)=>'<label class="group"><span><input type="checkbox" value="'+(i+1)+'" class="partner"> '+esc(r.name)+'</span><b>'+result[i+1]+'</b></label>').join('');$('coalitionResult').textContent='';show('coalition');updateCoalition()}
-function updateCoalition(){const result=seats(),partners=[...document.querySelectorAll('.partner:checked')].map(x=>Number(x.value)),sum=result[0]+partners.reduce((a,i)=>a+result[i],0);$('coalitionSeats').textContent=sum+' / 91 mandatów';const policies=['program gospodarczy','autonomia regionów','prawa pracownicze','reforma administracji','transformacja energetyczna'];const demands=partners.map(i=>policies[i-1]);const ideologicalConflict=partners.includes(2)&&partners.includes(4);let txt=sum>=91?'Większość parlamentarna: '+sum+' mandatów.':'Brakuje '+(91-sum)+' mandatów.';if(partners.length){txt+=' Partnerzy oczekują ustępstw: '+demands.join(', ')+'.';if(ideologicalConflict)txt+=' UWAGA: Sojusz Pracy i Nowa Republika mają sprzeczne priorytety. Zawarcie wspólnej koalicji wymaga dodatkowego kompromisu.';else if(sum>=91)txt+=' Możliwa umowa koalicyjna — do dalszych negocjacji.'}$('coalitionResult').textContent=txt}
+const POLITICAL_AXIS=[2,3,1,4,0],PROGRAM_AXIS={economy:4,social:1,green:0,freedom:2};
+function coalition(){
+ if(!S.negotiations)S.negotiations={accepted:[],tried:[],selected:null,round:0,done:false,message:''};
+ show('coalition');updateCoalition();
+}
+function coalitionTotal(){
+ const result=seats();return result[0]+(S.negotiations?.accepted||[]).reduce((n,i)=>n+result[i+1],0);
+}
+function updateCoalition(){
+ const result=seats(),co=S.negotiations,total=coalitionTotal();
+ if(total>=91){co.done=true;co.message='Koalicja osiąga większość. Możesz utworzyć rząd!';}
+ if(result[0]>=91){co.done=true;co.message='Samodzielne rządy: zdobyto co najmniej 91 mandatów.';}
+ const available=RIVALS.map((r,i)=>({r,i})).filter(x=>result[x.i+1]>0&&!co.tried.includes(x.i)&&!co.accepted.includes(x.i));
+ if((co.round>=3||!available.length)&&total<91&&!co.done){co.done=true;co.message='Koniec negocjacji. Nie udało Ci się zdobyć większości, pozostajesz w opozycji.';}
+ $('coalitionSeats').textContent=total+' / 91 mandatów';
+ $('coalitionDesc').textContent='Runda '+Math.min(3,co.round+1)+' z 3. Poparcie musi przekroczyć 90 mandatów. Porozumienie zależy od programu i ustępstw.';
+ if(co.done){$('partners').innerHTML='<div class="frame"><h3>'+esc(total>=91?'Rząd utworzony':'Koniec rozmów')+'</h3><p>'+esc(co.message)+'</p></div>';}
+ else if(co.selected===null){
+  $('partners').innerHTML='<p class="small">Wybierz ugrupowanie do rozmów. Masz tylko trzy próby.</p>'+
+  available.map(x=>'<button class="option" data-coalition-party="'+x.i+'"><strong>'+esc(x.r.name)+'</strong><small>'+result[x.i+1]+' mandatów · różnice programowe mają znaczenie</small></button>').join('')+
+  '<button class="btn alt" data-coalition-action="end">Zakończ rozmowy</button>';
+ }else{
+  const party=RIVALS[co.selected];
+  $('partners').innerHTML='<h3 class="section-title">'+esc(party.name)+'</h3><p class="small">Twój partner oczekuje ustępstw programowych. Zdecyduj, jaką ofertę przedstawisz.</p>'+
+  '<button class="option" data-coalition-offer="0"><strong>Hojny kompromis</strong><small>Duże ustępstwa, większa szansa zgody, −4 wiarygodności.</small></button>'+
+  '<button class="option" data-coalition-offer="1"><strong>Równy podział odpowiedzialności</strong><small>Średnie ustępstwa, −1 wiarygodności.</small></button>'+
+  '<button class="option" data-coalition-offer="2"><strong>Twarde stanowisko</strong><small>Mało ustępstw, trudniej o zgodę, +2 wiarygodności.</small></button>'+
+  '<button class="btn alt" data-coalition-action="back">Wybierz innego partnera</button>';
+ }
+ $('coalitionResult').textContent=co.message||('Do większości brakuje '+Math.max(0,91-total)+' mandatów.');
+}
+function negotiate(offer){
+ const co=S.negotiations;if(co.done||co.selected===null||![0,1,2].includes(offer))return;
+ const i=co.selected,p=RIVALS[i],diff=Math.abs((PROGRAM_AXIS[$('profile').value]??2)-POLITICAL_AXIS[i]),result=seats();
+ const chance=clamp(27+S.trust*.45-diff*9+[30,14,-14][offer]+(coalitionTotal()+result[i+1]>=91?12:0),8,94);
+ const accepted=rand()*100<chance;
+ co.tried.push(i);co.round++;co.selected=null;
+ if(accepted){co.accepted.push(i);S.trust=clamp(S.trust+[-4,-1,2][offer],0,100);co.message=p.name+' przyjmuje ofertę. +'+result[i+1]+' mandatów. Szansa powodzenia: '+Math.round(chance)+'%.';}
+ else co.message=p.name+' odrzuca propozycję. Szansa powodzenia: '+Math.round(chance)+'%.';
+ updateCoalition();
+}
+function coalitionClick(e){
+ const btn=e.target.closest('button');if(!btn||!S?.negotiations)return;
+ if(btn.dataset.coalitionParty!==undefined){S.negotiations.selected=Number(btn.dataset.coalitionParty);updateCoalition();}
+ else if(btn.dataset.coalitionOffer!==undefined){negotiate(Number(btn.dataset.coalitionOffer));}
+ else if(btn.dataset.coalitionAction==='back'){S.negotiations.selected=null;updateCoalition();}
+ else if(btn.dataset.coalitionAction==='end'){S.negotiations.done=true;S.negotiations.message='Zdecydowano o przejściu do opozycji.';updateCoalition();}
+}
 function reset(){S=null;show('setup')}
 function exportSave(){if(!S)return;const b=new Blob([JSON.stringify({format:'wybory2040-save',version:2,state:S},null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='wybory2040-tydzien-'+(S.week+1)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 async function importSave(input){const file=input.files?.[0];if(!file)return;try{if(file.size>1000000)throw Error('Plik zbyt duży');const o=JSON.parse(await file.text()),s=o.state;if(o.format!=='wybory2040-save'||!s||!Array.isArray(s.groups)||s.groups.length!==4||!Array.isArray(s.regional)||s.regional.length!==9||!Number.isInteger(s.week)||s.week<0||s.week>29||![0,1,2].includes(s.phase)||typeof s.name!=='string'||s.name.length>32||!Number.isFinite(s.money)||!Number.isFinite(s.trust)||!Array.isArray(s.history))throw Error('Nieprawidłowy zapis');S={...s,name:s.name.slice(0,32),history:s.history.slice(0,90),done:Boolean(s.done)};show('game');render();$('saveInfo').textContent='Wczytano tydzień '+(S.week+1)}catch(e){$('saveInfo').textContent='Błąd zapisu: '+e.message}finally{input.value=''}}
-$('start').addEventListener('click',start);$('restart').addEventListener('click',reset);$('playAgain').addEventListener('click',reset);$('next').addEventListener('click',next);$('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-kind]');if(b&&!b.disabled)decide(b.dataset.kind,Number(b.dataset.i))});$('coalitionButton').addEventListener('click',coalition);$('partners').addEventListener('change',updateCoalition);$('backResults').addEventListener('click',()=>show('end'));$('share').addEventListener('click',async()=>{if(!S)return;const msg='WYBORY2040: '+S.name+' zdobywa '+seats()[0]+' mandatów!';try{await navigator.clipboard.writeText(msg);$('copyStatus').textContent='Wynik skopiowany.'}catch{$('copyStatus').textContent=msg}});
+$('start').addEventListener('click',start);$('restart').addEventListener('click',reset);$('playAgain').addEventListener('click',reset);$('next').addEventListener('click',next);$('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-kind]');if(b&&!b.disabled)decide(b.dataset.kind,Number(b.dataset.i))});$('coalitionButton').addEventListener('click',coalition);$('partners').addEventListener('click',coalitionClick);$('backResults').addEventListener('click',()=>show('end'));$('share').addEventListener('click',async()=>{if(!S)return;const msg='WYBORY2040: '+S.name+' zdobywa '+seats()[0]+' mandatów!';try{await navigator.clipboard.writeText(msg);$('copyStatus').textContent='Wynik skopiowany.'}catch{$('copyStatus').textContent=msg}});
 
 $('exportSave').addEventListener('click',exportSave);$('importSave').addEventListener('change',e=>importSave(e.target));
