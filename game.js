@@ -601,7 +601,7 @@ function makeWeeklyReport(){
  const t=S.turn;if(!t||t.report)return;
  const now=national()[0],old=t.snapshot;
  const difference=now-old.poll,mandates=seats()[0]-old.seats;
- const news=(S.rivalAI?.news||[]).filter(x=>x.week===S.week+1).slice(0,2);
+ const news=(S.rivalAI?.news||[]).filter(x=>x.week===S.week).slice(0,2);
  t.report={week:S.week+1,delta:difference,mandates,spent:S.money-old.money,trust:S.trust-old.trust,news:news.map(x=>x.text),actions:[...t.done]};
 }
 function planAction(id){
@@ -627,14 +627,16 @@ function finishTurn(){
  if(!S||S.done)return;setupTurn();makeWeeklyReport();S.done=true;render();
 }
 function planningMarkup(){
- const goal=campaignGoal(),sel=REGIONS[S.selectedRegion||0];
- const target=REGIONS[goal.region].name;
+ const goal=campaignGoal(),target=REGIONS[goal.region].name;
  const progress=Math.max(0,Math.min(100,(goal.current/goal.needed)*100)).toFixed(0);
+ const kinds=[['region','Teren'],['media','Media'],['strategy','Strategia'],['finance','Finanse']];
+ const cat=S.turn.category||'region';
  return '<div class="turn-planner"><div class="kicker">PLAN TYGODNIA · '+S.turn.points+' / 3 PUNKTY DZIAŁAŃ</div>'+
- '<p class="small">Sam wybierasz trzy działania. Możesz powtórzyć część akcji albo zakończyć tydzień wcześniej.</p>'+
- '<div class="frame"><strong>CEL ROZDZIAŁU: '+esc(target)+'</strong><p class="small">Osiągnij '+goal.needed.toFixed(1)+'% poparcia. Teraz: '+goal.current.toFixed(1)+'%.'+(goal.earned?' Cel osiągnięty — bonus przyznany.':' Nagroda: trwałe struktury i +3 wiarygodności.')+'</p><div class="bar"><div class="barfill you" style="width:'+progress+'%"></div></div></div>'+
- '<label class="field"><span>Cel regionalnych działań</span><select id="planRegion">'+REGIONS.map((r,i)=>'<option value="'+i+'" '+(S.selectedRegion===i?'selected':'')+'>'+esc(r.name)+' — '+pollRegion(i)[0].toFixed(1)+'%</option>').join('')+'</select></label>'+
- PLAN_ACTIONS.map(a=>'<button class="option" data-kind="plan" data-plan="'+a.id+'" '+(S.money<a.cost||(a.id==='fundraise'&&S.turn.done.includes(a.id))||(a.id==='rest'&&S.turn.done.includes(a.id))?'disabled':'')+'><strong>'+esc(a.label)+'</strong><small>'+esc(a.desc)+' · '+(a.cost?moneyFmt(a.cost):'za darmo')+'</small></button>').join('')+
+ '<p class="small">Wybierz kategorię, potem działanie. Nie musisz wykorzystać wszystkich punktów.</p>'+
+ '<div class="frame"><strong>MISJA ROZDZIAŁU: '+esc(target)+'</strong><p class="small">Cel: '+goal.needed.toFixed(1)+'%. Teraz: '+goal.current.toFixed(1)+'%.'+(goal.earned?' Misja ukończona, nagroda przyznana.':' Nagroda: stałe struktury i +3 wiarygodności.')+'</p><div class="bar"><div class="barfill you" style="width:'+progress+'%"></div></div></div>'+
+ '<label class="field"><span>Co chcesz zrobić?</span><select id="planCategory">'+kinds.map(([key,label])=>'<option value="'+key+'" '+(cat===key?'selected':'')+'>'+label+'</option>').join('')+'</select></label>'+
+ (cat==='region'?'<label class="field"><span>Województwo</span><select id="planRegion">'+REGIONS.map((r,i)=>'<option value="'+i+'" '+(S.selectedRegion===i?'selected':'')+'>'+esc(r.name)+' — '+pollRegion(i)[0].toFixed(1)+'%</option>').join('')+'</select></label>':'')+
+ PLAN_ACTIONS.filter(a=>a.category===cat).map(a=>'<button class="option" data-kind="plan" data-plan="'+a.id+'" '+(S.money<a.cost||(a.id==='fundraise'&&S.turn.done.includes(a.id))||(a.id==='rest'&&S.turn.done.includes(a.id))?'disabled':'')+'><strong>'+esc(a.label)+'</strong><small>'+esc(a.desc)+' · '+(a.cost?moneyFmt(a.cost):'za darmo')+'</small></button>').join('')+
  '<button class="btn alt" data-kind="plan-finish">Zakończ planowanie tygodnia</button></div>';
 }
 function reportMarkup(){
@@ -663,5 +665,5 @@ decide=function(kind,index){
  return LEGACY_DECIDE(kind,index);
 };
 next=function(){if(!S?.done)return;const oldWeek=S.week;LEGACY_NEXT();if(S&&S.week!==oldWeek){S.turn=null;setupTurn();render();}};
-$('choices').addEventListener('change',e=>{if(e.target.id==='planRegion'&&S){S.selectedRegion=clamp(Number(e.target.value)||0,0,REGIONS.length-1);render();}});
+$('choices').addEventListener('change',e=>{if(!S)return;if(e.target.id==='planRegion'){S.selectedRegion=clamp(Number(e.target.value)||0,0,REGIONS.length-1);render();}else if(e.target.id==='planCategory'){setupTurn();S.turn.category=e.target.value;render();}});
 $('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-plan],button[data-kind="plan-finish"]');if(!b)return;e.stopPropagation();if(b.dataset.plan)planAction(b.dataset.plan);else finishTurn();});
