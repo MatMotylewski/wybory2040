@@ -69,11 +69,13 @@ const ACTIONS=[
 ['Wstrzymaj wydatki',0,[0,0,0,0],0,'Oszczędzasz środki na później.']
 ];
 const STAFF_ROLES=[
-{id:'field',name:'Koordynator terenowy',desc:'Kolejne wizyty w regionach dają większy efekt.'},
-{id:'press',name:'Rzeczniczka kampanii',desc:'Odpowiedzi na wydarzenia zyskują dodatkowy zasięg.'},
-{id:'finance',name:'Skarbniczka',desc:'Większe wpływy ze składek pomiędzy tygodniami.'},
-{id:'polls',name:'Analityczka',desc:'Silniejsze efekty ogólnokrajowych działań promocyjnych.'}
+{id:'field',name:'Koordynator terenowy',weekly:160,desc:'Objazd regionu: +0,8 siły lokalnej od 1. poziomu, a każdy następny poziom daje dodatkowe +0,6.'},
+{id:'press',name:'Rzeczniczka kampanii',weekly:200,desc:'Kampania medialna: +0,3 siły poparcia w każdej grupie za poziom.'},
+{id:'finance',name:'Specjalistka finansów',weekly:180,desc:'Zbiórka: +650 zł za poziom; dodatkowo +550 zł cotygodniowych składek.'},
+{id:'polls',name:'Analityczka sondaży',weekly:220,desc:'Analiza programu: +0,2 siły poparcia w każdej grupie za poziom.'}
 ];
+const STAFF_HIRE_COST=3200;
+function weeklyStaffCost(){return S.staff.reduce((sum,id)=>sum+(STAFF_ROLES.find(p=>p.id===id)?.weekly||0),0)}
 const TACTICS=[
 {name:'Przygotuj szczegółowy plan reform',cost:900,desc:'Konkrety zwiększają wiarygodność i pomagają części wyborców.',delta:[0,1,1,1],trust:3,diplomacy:0,local:0,budget:0},
 {name:'Kuluarowe rozmowy z partiami',cost:600,desc:'Budujesz kontakty, które mogą przydać się po wyborach.',delta:[0,0,0,0],trust:1,diplomacy:2,local:0,budget:0},
@@ -185,16 +187,28 @@ function renderAtlas(){
 }
 function renderStaffDesk(){
  const target=$('staffDesk');if(!target||!S)return;ensureNarrative();
- target.innerHTML='<h3 class="section-title">Twój sztab · '+S.staff.length+'/3 specjalistów</h3><p class="small">Tutaj zatrudniasz i zwalniasz specjalistów. Zatrudnienie kosztuje jednorazowo 3200 zł; utrzymanie każdego: 170 zł tygodniowo. Nie zużywa decyzji kampanii.</p>'+
- STAFF_ROLES.map(p=>{const hired=S.staff.includes(p.id),disabled=!hired&&(S.staff.length>=3||S.money<3200);return '<div class="staff-person"><strong>'+esc(p.name)+'</strong><small>'+esc(p.desc)+(hired?' · poziom '+((S.staffLevels||{})[p.id]||1)+'/3':'')+'</small><div class="staff-controls"><button data-staff-roster="'+p.id+'" '+(disabled?'disabled':'')+'>'+(hired?'Zwolnij — bez zwrotu kosztów':'Zatrudnij — 3200 zł')+'</button>'+(hired?'<button data-staff-train="'+p.id+'" '+(S.money<2100||((S.staffLevels||{})[p.id]||1)>=3?'disabled':'')+'>Szkolenie — 2100 zł</button>':'')+'</div></div>'}).join('')+
- '<h3 class="section-title">Kierownictwo i relacje</h3><p class="small">Lojalność wpływa na działanie kampanii. Rozmowa kosztuje 400 zł i może odbyć się raz na 4 tygodnie.</p>'+
- S.people.map(p=>{const last=(S.staffTalks||{})[p.id],cooldown=Number.isInteger(last)&&S.week-last<4;return '<div class="staff-person"><strong>'+esc(p.name)+'</strong><small>'+esc(p.role)+' · '+(p.active?'lojalność '+p.loyalty+'/100':'odszedł/odeszła')+'</small><div class="loyalty-track"><div class="loyalty-fill" style="width:'+p.loyalty+'%"></div></div>'+(p.active?'<div class="staff-controls"><button data-staff-talk="'+p.id+'" '+(cooldown||S.money<400?'disabled':'')+'>Rozmowa −400 zł</button><button data-staff-bonus="'+p.id+'" '+(cooldown||S.money<1800?'disabled':'')+'>Premia −1800 zł</button></div>':'')+'</div>'}).join('');
+ const active=S.staff.map(id=>STAFF_ROLES.find(x=>x.id===id)).filter(Boolean);
+ target.innerHTML='<h3 class="section-title">Specjaliści do wynajęcia · '+S.staff.length+'/3</h3>'+
+ '<p class="small">To płatni eksperci zatrudniani przez komitet. Ich pensje są potrącane co tydzień. Kierownictwo partii znajduje się niżej i działa od początku gry.</p>'+
+ '<div class="frame"><strong>Łączna pensja: '+moneyFmt(weeklyStaffCost())+' / tydzień</strong><p class="small">Koszt zatrudnienia jednorazowo: 3 200 zł. Rozwój: 2 100 zł za poziom (maksymalnie 3 poziomy). Limit: trzech specjalistów.</p></div>'+
+ STAFF_ROLES.map(p=>{const hired=S.staff.includes(p.id),lvl=(S.staffLevels||{})[p.id]||1,disabled=!hired&&(S.staff.length>=3||S.money<STAFF_HIRE_COST);
+ return '<div class="staff-person"><strong>'+esc(p.name)+'</strong><small>'+esc(p.desc)+'</small>'+
+ '<div class="group"><span>Zatrudnienie</span><b>'+moneyFmt(STAFF_HIRE_COST)+'</b></div>'+
+ '<div class="group"><span>Wynagrodzenie</span><b>'+moneyFmt(p.weekly)+' / tydzień</b></div>'+
+ '<div class="group"><span>Status</span><b>'+(hired?'ZATRUDNIONY · poziom '+lvl+'/3':'DOSTĘPNY')+'</b></div>'+
+ '<div class="staff-controls"><button data-staff-roster="'+p.id+'" '+(disabled?'disabled':'')+'>'+(hired?'Zakończ współpracę':'Zatrudnij specjalistę')+'</button>'+
+ (hired?'<button data-staff-train="'+p.id+'" '+(S.money<2100||lvl>=3?'disabled':'')+'>Szkolenie: 2 100 zł</button>':'')+'</div></div>'}).join('')+
+ '<hr class="rule"><h3 class="section-title">Kierownictwo partii · członkowie od początku gry</h3>'+
+ '<p class="small">To fabularni współpracownicy, a nie dodatkowi płatni specjaliści. Mają lojalność, uczestniczą w kryzysach i mogą odejść. Nie są objęci limitem trzech zatrudnionych ekspertów ani cotygodniową listą płac.</p>'+
+ S.people.map(p=>{const last=(S.staffTalks||{})[p.id],cooldown=Number.isInteger(last)&&S.week-last<4;
+ return '<div class="staff-person"><strong>'+esc(p.name)+'</strong><small>'+esc(p.role)+' · '+(p.active?'Lojalność '+p.loyalty+'/100':'Odeszła/odszedł')+'</small><div class="loyalty-track"><div class="loyalty-fill" style="width:'+p.loyalty+'%"></div></div>'+
+ (p.active?'<div class="staff-controls"><button data-staff-talk="'+p.id+'" '+(cooldown||S.money<400?'disabled':'')+'>Rozmowa: 400 zł</button><button data-staff-bonus="'+p.id+'" '+(cooldown||S.money<1800?'disabled':'')+'>Premia jednorazowa: 1 800 zł</button></div>':'')+'</div>'}).join('');
 }
 function manageStaff(id){
  if(!S)return;
  const person=STAFF_ROLES.find(p=>p.id===id);if(!person)return;
  if(S.staff.includes(id)){S.staff=S.staff.filter(x=>x!==id);if(S.staffLevels)delete S.staffLevels[id];log('Rozwiązano współpracę: '+person.name+'.');}
- else {if(S.staff.length>=3||S.money<3200)return;S.money-=3200;S.staff.push(id);log('Zatrudniono: '+person.name+'.');}
+ else {if(S.staff.length>=3||S.money<STAFF_HIRE_COST)return;S.money-=STAFF_HIRE_COST;S.staff.push(id);log('Zatrudniono: '+person.name+'.');}
  render();
 }
 function trainStaff(id){if(!S||!S.staff.includes(id)||S.money<2100)return;S.staffLevels=S.staffLevels||{};let lvl=S.staffLevels[id]||1;if(lvl>=3)return;S.money-=2100;S.staffLevels[id]=lvl+1;log('Specjalista kończy szkolenie: '+STAFF_ROLES.find(p=>p.id===id).name+' (poziom '+(lvl+1)+').');render();}
@@ -291,7 +305,7 @@ function initFinance(){
 }
 function weeklyAccounts(){
  const f=initFinance();if(f.lastWeek===S.week)return;
- const overhead=f.offices.reduce((n,x)=>n+x*120,0)+S.staff.length*170+350;
+ const overhead=f.offices.reduce((n,x)=>n+x*120,0)+weeklyStaffCost()+350;
  const subscriptions=1400+(S.staff.includes('finance')?550:0)+Math.round(f.offices.reduce((n,x)=>n+x*40,0));
  S.energy=clamp((S.energy??80)+12,0,100);S.heat=clamp((S.heat??10)-5,0,100);if(S.heat>65){S.trust=clamp(S.trust-2,0,100);log('Presja medialna: kolejne kontrowersje osłabiają zaufanie.');}
  const actual=Math.min(S.money,overhead);S.money-=actual;const unpaid=overhead-actual;
@@ -492,7 +506,7 @@ function render(){if(!S)return;renderCandidate();const n=national();$('weekLabel
 }if(S.phase===4)renderBroadcast();if(S.done){$('choices').innerHTML='';$('eventTitle').textContent='Numer tygodnia zamknięty';$('eventText').textContent='Wszystkie decyzje z tego tygodnia zostały podjęte. Możesz przejść do kolejnego numeru gazety.';$('next').textContent=S.week===29?'Otwórz urny wyborcze →':'Następny tydzień →';$('next').classList.remove('hidden');}
 }
 function decide(kind,index){if(!S||S.done)return;if(kind==='broadcast'&&S.phase===4){decideBroadcast(index);return;}if(kind==='event'&&S.phase===0){const e=eventForWeek(),opts=e.options||e[2],o=opts[index];if(index===99&&opts.every(x=>eventCost(x)>S.money)){apply([0,0,0,0],-1,0);log('Doraźna akcja wolontariuszy')}else{if(!o||eventCost(o)>S.money)return;if(e.options){if(e.arc||e.person)applyNarrative(index,e);const v=o[1];S.money+=v.budget||0;S.trust=clamp(S.trust+(v.trust||0),0,100);S.groups=S.groups.map(x=>clamp(x+((v.national||0)+(S.staff?.includes('press')?.25:0))*(.85+S.trust/300)*(.86+(S.people?.filter(p=>p.active).length||4)*.035),3,70));S.regional=S.regional.map(x=>clamp(x+(v.org||0)/12,0,30));S.energy=clamp((S.energy??80)+(v.energy||0),0,100);S.heat=clamp((S.heat??10)+(v.heat||0),0,100);S.awareness=clamp((S.awareness??20)+(v.awareness||0),0,100);S.organization=clamp((S.organization??10)+(v.org||0),0,100);S.groups=S.groups.map(x=>clamp(x+(v.awareness||0)*.035-(v.heat||0)*.018,3,70));S.trust=clamp(S.trust-(v.heat||0)*.10,0,100);if(v.org)S.regional[S.selectedRegion||0]=clamp(S.regional[S.selectedRegion||0]+v.org*.15,0,30)}else{apply(o[1],o[2],o[3])}log((e.title||e[0])+' — '+o[0])}if(broadcastForWeek())startBroadcast();else S.phase=1;render();if(S.phase===4)renderBroadcast();else{$('feedback').textContent='Korespondent: decyzja odnotowana w gazetach.';$('feedback').classList.remove('hidden');}$('feedback').classList.remove('hidden')}else if(kind==='region'&&S.phase===1){if(index!==REGIONS.length){if(!REGIONS[index]||S.money<700)return;apply([0,0,0,0],1,700,index);S.selectedRegion=index;log('Spotkanie w regionie '+REGIONS[index].name)}else{if(S.money>=700)return;log('Brak środków na wyjazd')}S.phase=2;render()}else if(kind==='hire'&&S.phase===2){
- const person=STAFF_ROLES[index];if(!person||S.staff.includes(person.id)||S.staff.length>=3||S.money<3200)return;
+ const person=STAFF_ROLES[index];if(!person||S.staff.includes(person.id)||S.staff.length>=3||S.money<STAFF_HIRE_COST)return;
  S.money-=3200;S.staff.push(person.id);S.trust=clamp(S.trust+1,0,100);
  log('Zatrudniono: '+person.name+'.');
  S.phase=3;render();
@@ -641,7 +655,7 @@ function planAction(id){
  if(id==='rest'&&S.turn.done.includes('rest'))return;
  const r=Number.isInteger(S.selectedRegion)?S.selectedRegion:0;
  S.money-=a.cost;S.energy=clamp(S.energy-(a.energy||0),0,100);if(id==='media')S.heat=clamp(S.heat+3,0,100);
- if(id==='field'){apply([0,0,0,0],1,0,r);S.regional[r]=clamp(S.regional[r]+.4+(S.origin==='mayor'?.7:0)+(S.staff.includes('field')?(((S.staffLevels||{}).field||1)-1)*.6:0),0,30)}
+ if(id==='field'){apply([0,0,0,0],1,0,r);S.regional[r]=clamp(S.regional[r]+.4+(S.origin==='mayor'?.7:0)+(S.staff.includes('field')?.8+(((S.staffLevels||{}).field||1)-1)*.6:0),0,30)}
  if(id==='volunteers'){S.regional[r]=clamp(S.regional[r]+2.1+(S.origin==='organizer'?.8:0),0,30)}
  if(id==='media')apply([1.8,1.8,1.8,1.8].map(x=>x+(S.origin==='journalist'?.35:0)+(S.staff?.includes('press')?.3*((S.staffLevels||{}).press||1):0)),0,0);
  if(id==='debate')apply([.4,.5,.5,.5],3+(S.origin==='journalist'?1:0),0);
