@@ -33,6 +33,7 @@ test('static assets and narrative library',()=>{
  assert.match(html,/id="electionAtlas"/);
  assert.match(html,/id="staffDesk"/);
  assert.match(html,/id="financeDesk"/);
+ assert.match(html,/id="rivalDesk"/);
  assert.equal(Object.keys(data.milestones).length,6);
 });
 test('40 complete, distinct campaigns through parliament and coalition',()=>{
@@ -75,6 +76,8 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
   }
   assert.equal(Object.keys(api.getState().arcs||{}).length,3,'three early decisions should have long-term consequences');
   assert.equal((api.getState().people||[]).length,4,'four story characters remain in state');
+  assert.equal(api.getState().rivalAI.pollHistory.length,29,'rival polling should update every completed week');
+  assert.ok(api.getState().rivalAI.news.length>0,'rivals must take actions');
   assert.equal(api.seats().reduce((a,b)=>a+b,0),180);
   api.coalition();
   const c=api.getState().negotiations;
