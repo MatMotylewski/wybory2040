@@ -241,6 +241,38 @@ const milestones={
 24:{title:'Ostatni wielki sondaż',body:'Ogólnokrajowa gazeta przedstawia mapę przewidywanych mandatów. Sztaby reagują nerwowo.',topic:'jobs',options:[['Mów o konkretnych rozwiązaniach',{trust:4,national:1.2}],['Zwołaj masowy wiec',{budget:-3100,awareness:9,national:1.6,energy:-8}],['Skup się na lokalnych wolontariuszach',{org:8,national:.6,energy:-7}]]},
 28:{title:'Debata przed ciszą wyborczą',body:'Ostatnie starcie kandydatów ogląda cała republika. Każde słowo może zdecydować o mandatach.',topic:'media',options:[['Postaw na spokojny finał',{trust:6,national:1.25}],['Uderz w przeciwników',{awareness:9,national:2,trust:-5,heat:9}],['Wezwij do współpracy',{trust:5,national:1.4,org:2}]]}
 };
-const pool=Object.entries(raw).flatMap(([topic,items])=>items.map((entry,index)=>{const p=entry.split('|');return {id:topic+'-'+index,topic,title:p[0],body:p[1],options:options[topic]}}));
+// Każda z 144 depesz ma własne opcje odnoszące się do jej tematu.
+// Trzy drogi: konkretne rozwiązanie, dialog lub agresywna reakcja.
+// Koszty/efekty są modyfikowane per historia, aby odróżnić ryzyko i nagrody.
+const APPROACHES={
+ economy:[['Przedstaw plan naprawczy dla sprawy: ','Zaproś ekonomistów do rozmowy o: ','Podważ stanowisko władz w sprawie: ']],
+ jobs:[['Ogłoś program ochrony miejsc pracy: ','Spotkaj się z przedstawicielami załogi: ','Zażądaj publicznych wyjaśnień w sprawie: ']],
+ housing:[['Zaproponuj pakiet mieszkaniowy: ','Otwórz konsultacje mieszkańców: ','Wskaż odpowiedzialnych za problem: ']],
+ health:[['Zaproponuj interwencję w ochronie zdrowia: ','Wysłuchaj pacjentów i personelu: ','Zażądaj dymisji za sprawę: ']],
+ education:[['Przedstaw rozwiązania dla szkół: ','Zwołaj nauczycieli i rodziców: ','Skrytykuj resort za problem: ']],
+ infrastructure:[['Przygotuj plan inwestycyjny: ','Zorganizuj konsultacje transportowe: ','Nagłoś zaniedbania dotyczące: ']],
+ environment:[['Przedstaw plan ochrony środowiska: ','Spotkaj się z lokalną społecznością: ','Oskarż władze o zaniedbania: ']],
+ media:[['Opublikuj szczegółowe wyjaśnienie: ','Zapewnij niezależną weryfikację: ','Wystąp na ostrej konferencji: ']],
+ regions:[['Zaproponuj regionalne rozwiązanie: ','Porozmawiaj z samorządami o: ','Publicznie skrytykuj decyzje centrum: ']],
+ trade:[['Zaproponuj porozumienie gospodarcze: ','Zwołaj przedstawicieli branży: ','Zażądaj kontroli urzędowej w sprawie: ']],
+ science:[['Przedstaw program badań i rozwoju: ','Zaproś naukowców do konsultacji: ','Wytknij błędy polityki naukowej: ']],
+ security:[['Zaproponuj reformę bezpieczeństwa: ','Zorganizuj spotkanie eksperckie: ','Zażądaj nadzwyczajnego dochodzenia: ']]
+};
+const pool=Object.entries(raw).flatMap(([topic,items])=>items.map((entry,index)=>{
+ const [title,body]=entry.split('|'),base=options[topic],labels=APPROACHES[topic][0];
+ const focus=title.charAt(0).toLowerCase()+title.slice(1);
+ const choices=base.map((choice,j)=>{
+  const originalEffect=choice[1],effect={...originalEffect};
+  // Skutki różnią się w ramach danego tematu; zmiany pozostają nieduże,
+  // by nie destabilizować istniejącej gospodarki gry.
+  const shift=(index%5)-2;
+  if(j===0){effect.trust=(effect.trust||0)+(index%3===0?1:0);effect.budget=(effect.budget||0)-((index%4)*100);effect.org=(effect.org||0)+(index%4===0?1:0);}
+  if(j===1){effect.org=(effect.org||0)+(index%3);effect.energy=(effect.energy||0)-(index%2?2:0);effect.national=(effect.national||0)+(index%2?.08:0);}
+  if(j===2){effect.awareness=(effect.awareness||0)+2+(index%3);effect.heat=(effect.heat||0)+4+(index%4);effect.trust=(effect.trust||0)-(index%3===0?2:1);effect.national=(effect.national||0)+shift*.08;}
+  return [labels[j]+focus,effect];
+ });
+ return {id:topic+'-'+index,topic,title,body,options:choices};
+}));
+
 window.WYBORY_DATA={pool,milestones};
 })();
