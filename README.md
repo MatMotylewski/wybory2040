@@ -50,3 +50,9 @@ Wykonano 100 automatycznych symulacji pełnych 30 tygodni z wyborem dostępnych 
 ## Testy automatyczne
 
 Po instalacji Node.js uruchom `npm test` w katalogu repozytorium. Testy znajdują się w `tests/simulation.test.cjs` i nie wymagają dodatkowych bibliotek. Obejmują 40 kompletowanych kampanii w ramach powtarzalnego testu; osobno przeprowadzono serię 100 symulacji podczas rozwoju. Nadal potrzebne są testy manualne wyglądu i użyteczności na prawdziwych telefonach.
+
+## Debaty i kryzysy medialne (etap kolejny)
+
+W tygodniach **5, 11, 19 i 26** gra przełącza się na trzyrundowy format rozmowy: dwie debaty wyborcze, wywiad dla gazety i kryzys medialny. Odpowiedzi wpływają na wiarygodność, zainteresowanie mediów, poparcie oraz lojalność rzecznika. Wydarzenia są częścią rozgrywki, więc nie można ich pominąć; zapisy stanu obsługują także trwającą debatę. Scenariusze są fikcyjne.
+
+Test automatyczny przechodzi również przez wszystkie 12 rund specjalnych w każdym z 40 scenariuszy kampanii.
