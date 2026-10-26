@@ -11,7 +11,7 @@ Aktualizacja lokalnej kopii: `git pull --rebase origin main` (tylko przy czystym
 1. Wybierz nazwę partii, program, poziom trudności, nazwisko i płeć kandydata, jego przeszłość oraz portret.
 2. Na początku tygodnia odpowiedz na depeszę. W niektórych tygodniach rozegraj trzyrundową debatę lub kryzys medialny.
 3. Otrzymujesz **3 punkty działań**. Możesz przeznaczyć je na teren, media, finanse, program lub rozmowy z innymi partiami; możesz też zakończyć tydzień przed ich wykorzystaniem.
-4. W zakładce **Sztab** zatrudniaj, zwalniaj i szkol specjalistów (maksymalnie trzech). W zakładce **Finanse** zarządzaj biurami, sponsorami, pożyczkami oraz zaległościami.
+4. W zakładce **Sztab** zarządzaj czterema stanowiskami kierownictwa; na wolne stanowisko wybieraj spośród trzech kandydatów o różnych umiejętnościach, lojalności, kosztach rekrutacji i pensji. W zakładce **Finanse** zarządzaj biurami, sponsorami, pożyczkami oraz zaległościami.
 5. Realizuj co pięć tygodni regionalną misję rozdziału. Wspieraj kluczowe województwa, pilnuj budżetu, energii sztabu i presji medialnej.
 6. Po zamknięciu tygodnia przeczytaj **Dziennik Wyborczy**: bilans poparcia, mandatów, pieniędzy i aktualne depesze konkurencji.
 7. Po tygodniu 30 rozegraj trzy depesze nocy wyborczej. Jeśli zdobędziesz mandaty, możesz negocjować koalicję.
@@ -21,7 +21,7 @@ Aktualizacja lokalnej kopii: `git pull --rebase origin main` (tylko przy czystym
 - Pula 144 depesz (12 tematów i zestawów bazowych odpowiedzi), sześć powiązanych wątków fabularnych z odroczonymi skutkami oraz krótsze konsekwencje zwykłych depesz. Zwykła depesza nie powtarza się w jednej kampanii.
 - 16 polskich województw z granicami administracyjnymi, regionalnym poparciem, biurami i możliwością interakcji z mapą.
 - Pięć fikcyjnych ugrupowań rywali, działających co tydzień i atakujących m.in. wyrównane regiony.
-- Cztery specjalizacje ekspertów, rozwój do poziomu 3, relacje z kierownictwem i umiejętności.
+- Cztery stanowiska kierownictwa obsadzone na początku, po trzech kandydatów na każde stanowisko, poziomy kompetencji 1–3, indywidualna lojalność i pensja tygodniowa.
 - Cztery pochodzenia kandydata z odmiennymi bonusami, personalizacja wizerunku.
 - Ekonomia kampanii, sponsorzy, zadłużenie, energia, presja medialna i przygotowanie do koalicji.
 - 180 mandatów w fikcyjnym parlamencie, regionalny przydział metodą d'Hondta oraz negocjacje o 91 mandatów.
@@ -46,3 +46,9 @@ Nowa zakładka **Teczka polityka** zawiera podjęte decyzje, sprawy w toku, obie
 ## Telefony i responsywność
 
 Interfejs ma responsywne reguły CSS, w tym szerokości do 680 px: przewijane dotykowo zakładki, wygodniejsze przyciski, dwukolumnowe statystyki oraz układ portretów w dwóch kolumnach. Mapa skaluje się razem z ekranem. **Testy logiki nie zastępują ręcznego przeglądu w mobilnej przeglądarce** (zwłaszcza Safari na iPhonie i Android Chrome). Jeśli strona jest uruchamiana lokalnie z `file://`, zachowanie pamięci przeglądarki może być różne; wygodniej używać Live Server lub hostingu.
+
+## Kierownictwo i rekrutacja (aktualne)
+
+Na początku gry cztery stanowiska są obsadzone przez założycieli partii. Nie ma już oddzielnego, dublującego się sztabu ekspertów. Można zwolnić członka kierownictwa, pozostawiając stanowisko puste (brak kosztu i bonusu). Przy wakacie gra pokazuje **trzy konkretne kandydatury na dane stanowisko**, z porównaniem umiejętności, lojalności, jednorazowego kosztu zatrudnienia i tygodniowej pensji. Oferty można podejrzeć także przed zwolnieniem. Zatrudniona osoba rozpoczyna na poziomie 1, z własnymi statystykami — nie dziedziczy lojalności ani szkoleń poprzednika. Szkolenie kosztuje 2100 zł za poziom, maksymalny poziom to 3. Pensje są wliczane w bilans finansowy tygodnia.
+
+Kolejne pomysły (krótsza kampania, koalicje, rządzenie, transfery polityków, wybory prezydenckie) opisano w [PLAN_KARIERY_POLITYCZNEJ.md](PLAN_KARIERY_POLITYCZNEJ.md). Są to propozycje na następne etapy; bieżąca wersja nadal trwa 30 tygodni.
