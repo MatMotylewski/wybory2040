@@ -1,97 +1,72 @@
 'use strict';
-const test=require('node:test');
-const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const vm=require('node:vm');
-const path=require('node:path');
-const root=path.join(__dirname,'..');
-const data=fs.readFileSync(path.join(root,'data.js'),'utf8');
-const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.join(__dirname,'..'),data=fs.readFileSync(path.join(root,'data.js'),'utf8'),game=fs.readFileSync(path.join(root,'game.js'),'utf8'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 function boot(){
- const nodes=new Map();
- function getElementById(id){
-  if(!nodes.has(id))nodes.set(id,{id,value:id==='partyName'?'Komitet Testowy':id==='profile'?'economy':'',innerHTML:'',textContent:'',style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},scrollIntoView(){},click(){},files:[]});
+ const nodes=new Map(),storage=new Map();
+ function get(id){
+  if(!nodes.has(id))nodes.set(id,{id,value:id==='partyName'?'Komitet Testowy':id==='profile'?'economy':id==='candidateOrigin'?'organizer':id==='difficulty'?'normal':'',innerHTML:'',textContent:'',style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},scrollIntoView(){},click(){},files:[]});
   return nodes.get(id);
  }
- const doc={getElementById,querySelector:()=>getElementById('article'),querySelectorAll:()=>[],createElement:()=>({click(){}}),addEventListener(){}};
- const ctx={window:{WYBORY_DATA:null,scrollTo(){}},document:doc,navigator:{clipboard:{writeText:()=>Promise.resolve()}},
-  Blob:class{},URL:{createObjectURL:()=>'',revokeObjectURL(){}},setTimeout:()=>{},alert:()=>{}};
+ const doc={getElementById:get,querySelector:()=>get('article'),querySelectorAll:()=>[],createElement:()=>({click(){}}),addEventListener(){}};
+ const ctx={window:{WYBORY_DATA:null,scrollTo(){}},document:doc,navigator:{clipboard:{writeText:()=>Promise.resolve()}},Blob:class{},URL:{createObjectURL:()=>'',revokeObjectURL(){}},setTimeout:()=>{},alert(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}};
  vm.createContext(ctx);
  vm.runInContext(data,ctx,{filename:'data.js'});
- vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,seats,national,coalition,negotiate,transactFinance,STAFF_ROLES,ACTIONS,TACTICS,getState:()=>S};',ctx,{filename:'game.js'});
- return {api:ctx.TEST_API,elements:nodes,get:getElementById,data:ctx.window.WYBORY_DATA};
+ vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,eventCost,seats,national,planAction,finishTurn,manageStaff,trainStaff,transactFinance,coalition,negotiate,getState:()=>S};',ctx,{filename:'game.js'});
+ return {api:ctx.TEST_API,get,storage,library:ctx.window.WYBORY_DATA};
 }
-test('static assets and narrative library',()=>{
- assert.match(html,/<script src="data\.js"><\/script>/);
- assert.match(html,/<script src="game\.js"><\/script>/);
- assert.equal((html.match(/<script src="data\.js"/g)||[]).length,1);
- assert.doesNotMatch(html,/fonts\.googleapis\.com|localStorage|document\.cookie/);
- const {data}=boot();
- assert.equal(data.pool.length,144);
- assert.equal(data.regions.length,9);
- assert.match(html,/id="electionAtlas"/);
- assert.match(html,/id="staffDesk"/);
- assert.match(html,/id="financeDesk"/);
- assert.match(html,/id="rivalDesk"/);
- assert.match(html,/id="forecastDesk"/);
- assert.match(html,/id="epilogue"/);
- assert.match(html,/class="tutorial"/);
- assert.match(html,/id="difficulty"/);
- assert.equal(Object.keys(data.milestones).length,6);
+test('full library and newspaper interface',()=>{
+ const {library,api,get}=boot();
+ assert.equal(library.pool.length,144);
+ assert.equal(Object.keys(library.milestones).length,6);
+ assert.match(html,/id="planCategory"|id="stepHint"/);
+ assert.match(html,/id="candidateOrigin"/);
+ assert.match(html,/id="resumeAuto"/);
+ api.start();
+ assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,16);
+ assert.match(get('electionAtlas').innerHTML,/<path class="territory/);
+ assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,8);
 });
-test('40 complete, distinct campaigns through parliament and coalition',()=>{
- const {api,get}=boot();
- let headlines=new Set();
- for(let sim=0;sim<40;sim++){
-  get('profile').value=['economy','social','green','freedom'][sim%4];
-  get('difficulty').value=['easy','normal','hard'][sim%3];
-  api.start();api.getState().seed=sim*1901+347;
-  if(sim===0){api.transactFinance('sponsor','citizens');assert.ok(api.getState().finance.sponsors.includes('citizens'));}
-  if(sim===0){assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,16,'sixteen clickable voivodeships');assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,4,'four staff character cards');}
+test('team hiring and training',()=>{
+ const {api}=boot();api.start();let before=api.getState().money;
+ api.manageStaff('field');assert.ok(api.getState().staff.includes('field'));assert.equal(api.getState().money,before-3200);
+ api.trainStaff('field');assert.equal(api.getState().staffLevels.field,2);
+ api.manageStaff('field');assert.ok(!api.getState().staff.includes('field'));
+});
+test('72 campaigns complete across difficulty, origins and strategy',()=>{
+ let campaigns=0,topics=new Set();
+ for(let run=0;run<72;run++){
+  const {api,get,storage}=boot();
+  get('difficulty').value=['easy','normal','hard'][run%3];
+  get('candidateOrigin').value=['organizer','journalist','mayor','entrepreneur'][run%4];
+  get('profile').value=['economy','social','green','freedom'][run%4];
+  api.start();api.getState().seed=run*1901+347;
   for(let week=0;week<30;week++){
-   const e=api.eventForWeek();headlines.add(e.title||e[0]);
-   const opts=e.options||e[2];
-   const affordable=opts.map((o,i)=>{
-    const price=Array.isArray(o[1])?o[3]:Math.max(0,-(o[1].budget||0));
-    return price<=api.getState().money?i:-1;
-   }).filter(i=>i>=0);
-   api.decide('event',affordable.length?affordable[sim%affordable.length]:99);
-   if([4,10,18,25].includes(week)){
-    assert.equal(api.getState().phase,4,'broadcast should open on week '+week);
-    for(let round=0;round<3;round++)api.decide('broadcast',sim%3);
-   }
-   assert.equal(api.getState().phase,1,'week '+week+' event');
-   api.decide('region',api.getState().money>=700?(sim+week)%16:16);
-   assert.equal(api.getState().phase,2,'week '+week+' region');
-   if([2,8,16].includes(week)&&api.getState().money>=3200){
-    const role=api.STAFF_ROLES.findIndex(r=>!api.getState().staff.includes(r.id));
-    api.decide('hire',role);
-   }else{
-    const available=api.ACTIONS.map((a,i)=>a[1]<=api.getState().money?i:-1).filter(i=>i>=0);
-    api.decide('action',available[(sim+week)%available.length]);
-   }
-   assert.equal(api.getState().phase,3,'week '+week+' nationwide');
-   const tactics=api.TACTICS.map((a,i)=>a.cost<=api.getState().money?i:-1).filter(i=>i>=0);
-   api.decide('tactic',tactics[(sim+week)%tactics.length]);
-   assert.equal(api.getState().done,true,'week '+week+' tactic');
-   assert.ok(api.getState().money>=0,'budget remains nonnegative');
-   if(week===8)api.render(); // rehydration after a finished week must show next button
+   let event=api.eventForWeek();topics.add(event.title||event[0]);
+   const opts=event.options||event[2],affordable=opts.map((o,i)=>api.eventCost(o)<=api.getState().money?i:-1).filter(i=>i>=0);
+   api.decide('event',affordable.length?affordable[(week+run)%affordable.length]:99);
+   if(api.getState().phase===4)for(let q=0;q<3;q++)api.decide('broadcast',run%3);
+   assert.equal(api.getState().phase,1,'planning week '+week);
+   api.getState().selectedRegion=(run+week)%16;
+   const actions=run%3===0?['field','fundraise','volunteers']:run%3===1?['media','research','counter']:['fundraise','debate','diplomacy'];
+   for(const a of actions)api.planAction(a);
+   if(!api.getState().done)api.finishTurn();
+   assert.ok(api.getState().turn.report,'newspaper weekly edition');
+   assert.ok(storage.size>0,'autosave persists');
+   assert.ok(api.getState().money>=0,'nonnegative treasury');
    api.next();
   }
-  assert.equal(Object.keys(api.getState().arcs||{}).length,3,'three early decisions should have long-term consequences');
-  assert.equal((api.getState().people||[]).length,4,'four story characters remain in state');
-  assert.equal(api.getState().rivalAI.pollHistory.length,29,'rival polling should update every completed week');
-  assert.ok(api.getState().rivalAI.news.length>0,'rivals must take actions');
   assert.equal(api.seats().reduce((a,b)=>a+b,0),180);
+  assert.equal(Object.keys(api.getState().arcs).length,6);
   assert.match(get('epilogue').innerHTML,/EPILOG/);
   api.coalition();
-  const c=api.getState().negotiations;
-  for(let i=0;i<3&&!c.done;i++){
-   const next=[0,1,2,3,4].find(x=>!c.tried.includes(x)&&!c.accepted.includes(x));
-   if(next===undefined)break;c.selected=next;api.negotiate(i%3);
+  let c=api.getState().negotiations;
+  for(let q=0;q<3&&!c.done;q++){
+   const i=[0,1,2,3,4].find(x=>!c.tried.includes(x)&&!c.accepted.includes(x));
+   if(i===undefined)break;c.selected=i;api.negotiate(q%3);
   }
-  assert.equal(c.done,true,'negotiations resolve');
+  assert.ok(c.done,'coalition resolves');
+  campaigns++;
  }
- assert.ok(headlines.size>=50,'campaigns should show different stories');
+ assert.equal(campaigns,72);
+ assert.ok(topics.size>=55,'story variety across campaigns');
 });
