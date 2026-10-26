@@ -212,7 +212,7 @@ document.addEventListener('click',e=>{
  const g=e.target.closest('[data-atlas-region]');
  if(g&&S){atlasSelected=Number(g.dataset.atlasRegion);renderAtlas();return;}
  const visit=e.target.closest('[data-atlas-visit]');
- if(visit&&S&&S.phase===1&&!S.done&&S.money>=700){decide('region',Number(visit.dataset.atlasVisit));window.openGameTab?.('campaign');return;}
+ if(visit&&S&&S.phase===1&&!S.done&&S.money>=700){S.selectedRegion=Number(visit.dataset.atlasVisit);planAction('field');window.openGameTab?.('campaign');return;}
  const train=e.target.closest('[data-staff-train]');if(train&&S){trainStaff(train.dataset.staffTrain);return;}
  const roster=e.target.closest('[data-staff-roster]');if(roster&&S){manageStaff(roster.dataset.staffRoster);return;}
  const talk=e.target.closest('[data-staff-talk]');
