@@ -203,6 +203,57 @@ document.addEventListener('keydown',e=>{
  if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();atlasSelected=Number(node.dataset.atlasRegion);renderAtlas();}
 });
 
+
+const BROADCASTS={
+4:{kind:'debata',title:'Debata telewizyjna na żywo',host:'Prowadząca telewizyjnego studia',rounds:[
+{q:'Jak sfinansujesz swój program?',a:[['Przedstawię źródła i koszty',3,1,0],['To rywale powinni się tłumaczyć',-3,3,4],['Powiem o kierunku zmian',0,2,1]]},
+{q:'Co zrobisz po politycznej porażce?',a:[['Uszanuję wynik wyborców',3,0,-2],['Zawalczę ze wszystkich sił',0,3,2],['Oskarżę komisję',-6,1,7]]},
+{q:'Czy podejmiesz współpracę z rywalami?',a:[['Jeśli służy mieszkańcom',3,1,-1],['Tylko na moich warunkach',-1,3,2],['Nigdy',-3,2,3]]}
+]},
+10:{kind:'wywiad',title:'Wywiad dla Dziennika Nowin',host:'Redaktor naczelna',rounds:[
+{q:'Dziennikarka pyta o wydatki Twojego sztabu.',a:[['Opublikuję zestawienie rachunków',4,0,-2],['To zwykła działalność polityczna',-1,1,3],['Uniknę szczegółów',-3,0,4]]},
+{q:'Reporter przytacza krytykę Twoich działaczy.',a:[['Odpowiem na konkretne zarzuty',3,1,-1],['Oskarżę reportera o stronniczość',-4,2,5],['Poproszę o spotkanie po wywiadzie',1,1,0]]},
+{q:'Co obiecujesz niezdecydowanym?',a:[['Realistyczny plan na rok',3,1,-1],['Szybkie i wielkie zmiany',-2,4,3],['Dialog społeczny',2,1,-1]]}
+]},
+18:{kind:'kryzys',title:'Kryzys prasowy w sztabie',host:'Zespół prasowy',rounds:[
+{q:'Media publikują anonimową skargę.',a:[['Sprawdzę fakty przed komentarzem',3,0,-2],['Odrzucę oskarżenia bez sprawdzenia',-4,2,5],['Upublicznię dane informatora',-8,2,8]]},
+{q:'Rzecznik proponuje oświadczenie.',a:[['Jawne fakty i plan wyjaśnienia',4,0,-2],['Kontratak na konkurencję',-3,3,5],['Milczenie do końca tygodnia',-2,0,3]]},
+{q:'Pojawia się sprostowanie w prasie.',a:[['Przyjmę je i podziękuję',3,1,-2],['Zażądam przeprosin od wszystkich',-1,2,2],['Rozpocznę dalszy spór',-3,3,4]]}
+]},
+25:{kind:'debata',title:'Ostatnia debata przed wyborami',host:'Komisja debat publicznych',rounds:[
+{q:'Jak oceniasz swoją kampanię?',a:[['Wskażę konkretne rezultaty',3,1,0],['Ogłoszę nieuchronne zwycięstwo',-2,4,4],['Podziękuję wolontariuszom',2,1,-1]]},
+{q:'Rywale proponują przedwyborczy pakt.',a:[['Rozpatrzę jawne warunki',3,1,-2],['Odrzucę rozmowy',-2,2,3],['Zażądam wszystkich stanowisk',-3,3,4]]},
+{q:'Ostatnie pytanie dotyczy wiarygodności.',a:[['Odpowiem zwięźle i rzeczowo',4,1,-2],['Wygłoszę ogólny manifest',-1,3,2],['Przerwę rozmowę',-6,0,6]]}
+]}};
+function broadcastForWeek(){return BROADCASTS[S.week]||null}
+function startBroadcast(){const event=broadcastForWeek();S.broadcast={week:S.week,round:0,score:0,attention:0,pressure:0,history:[]};S.phase=4;}
+function renderBroadcast(){
+ if(S.phase!==4)return;
+ const b=S.broadcast,spec=broadcastForWeek();if(!b||!spec)return;
+ const question=spec.rounds[b.round];$('phase').textContent='WYDANIE NA ŻYWO · '+(b.round+1)+' / '+spec.rounds.length;
+ $('eventTitle').textContent=spec.title;
+ $('eventText').textContent=spec.host+': „'+question.q+'”';
+ $('choices').innerHTML='<div class="frame"><b>Transmisja na żywo</b><p class="small">Każda odpowiedź wpływa na zaufanie, zainteresowanie mediów oraz napięcie. Wybierz, co powiesz.</p>'+
+ question.a.map((answer,i)=>'<button class="option" data-kind="broadcast" data-i="'+i+'"><strong>'+esc(answer[0])+'</strong></button>').join('')+
+ '<p class="small">Runda '+(b.round+1)+' z 3 · Zasięg: '+b.attention+' · Napięcie: '+b.pressure+'</p></div>';
+ $('next').classList.add('hidden');$('feedback').classList.add('hidden');
+}
+function decideBroadcast(index){
+ const b=S?.broadcast,spec=broadcastForWeek();if(!b||!spec||S.phase!==4)return;
+ const answer=spec.rounds[b.round]?.a[index];if(!answer)return;
+ b.score+=answer[1];b.attention+=answer[2];b.pressure+=answer[3];b.history.push(answer[0]);b.round++;
+ if(b.round===spec.rounds.length){
+  S.trust=clamp(S.trust+b.score,0,100);
+  S.groups=S.groups.map(g=>clamp(g+b.attention*.22-b.pressure*.12,3,70));
+  ensureNarrative();const spokesperson=S.people.find(p=>p.id==='spokesperson');
+  if(spokesperson&&spokesperson.active)spokesperson.loyalty=clamp(spokesperson.loyalty+(b.score>=0?3:-5),0,100);
+  log(spec.title+': wynik '+b.score+' punktów wiarygodności.');
+  S.phase=1;render();
+  $('feedback').textContent='Transmisja zakończona. Wynik debaty: '+(b.score>=0?'+':'')+b.score+' wiarygodności.';
+  $('feedback').classList.remove('hidden');
+ }else {renderBroadcast();}
+}
+
 let S=null;
 function safeNum(n){return Math.round(n).toLocaleString('pl-PL')}
 function rand(){S.seed=(Math.imul(S.seed,1664525)+1013904223)>>>0;return S.seed/4294967296}
@@ -224,9 +275,9 @@ function render(){if(!S)return;const n=national();$('weekLabel').textContent='TY
 }if(S.phase===3){
  $('eventTitle').textContent='Plan na nadchodzące dni';$('eventText').textContent='Podejmij jedną dodatkową decyzję strategiczną. Jej konsekwencje mogą wpłynąć na regiony, budżet lub przyszłą koalicję.';
  $('choices').innerHTML=TACTICS.map((a,i)=>'<button class="option" data-kind="tactic" data-i="'+i+'" '+(S.money<a.cost?'disabled':'')+'><strong>'+esc(a.name)+'</strong><small>'+esc(a.desc)+' · koszt: '+safeNum(a.cost)+' zł</small></button>').join('');
-}if(S.done){$('choices').innerHTML='';$('eventTitle').textContent='Numer tygodnia zamknięty';$('eventText').textContent='Wszystkie decyzje z tego tygodnia zostały podjęte. Możesz przejść do kolejnego numeru gazety.';$('next').textContent=S.week===29?'Otwórz urny wyborcze →':'Następny tydzień →';$('next').classList.remove('hidden');}
+}if(S.phase===4)renderBroadcast();if(S.done){$('choices').innerHTML='';$('eventTitle').textContent='Numer tygodnia zamknięty';$('eventText').textContent='Wszystkie decyzje z tego tygodnia zostały podjęte. Możesz przejść do kolejnego numeru gazety.';$('next').textContent=S.week===29?'Otwórz urny wyborcze →':'Następny tydzień →';$('next').classList.remove('hidden');}
 }
-function decide(kind,index){if(!S||S.done)return;if(kind==='event'&&S.phase===0){const e=eventForWeek(),opts=e.options||e[2],o=opts[index];if(index===99&&opts.every(x=>eventCost(x)>S.money)){apply([0,0,0,0],-1,0);log('Doraźna akcja wolontariuszy')}else{if(!o||eventCost(o)>S.money)return;if(e.options){if(e.arc||e.person)applyNarrative(index,e);const v=o[1];S.money+=v.budget||0;S.trust=clamp(S.trust+(v.trust||0),0,100);S.groups=S.groups.map(x=>clamp(x+((v.national||0)+(S.staff?.includes('press')?.25:0))*(.85+S.trust/300)*(.86+(S.people?.filter(p=>p.active).length||4)*.035),3,70));S.regional=S.regional.map(x=>clamp(x+(v.org||0)/12,0,30))}else{apply(o[1],o[2],o[3])}log((e.title||e[0])+' — '+o[0])}S.phase=1;render();$('feedback').textContent='Korespondent: decyzja odnotowana w gazetach.';$('feedback').classList.remove('hidden')}else if(kind==='region'&&S.phase===1){if(index!==9){if(!REGIONS[index]||S.money<700)return;apply([0,0,0,0],1,700,index);S.selectedRegion=index;log('Spotkanie w regionie '+REGIONS[index].name)}else{if(S.money>=700)return;log('Brak środków na wyjazd')}S.phase=2;render()}else if(kind==='hire'&&S.phase===2){
+function decide(kind,index){if(!S||S.done)return;if(kind==='broadcast'&&S.phase===4){decideBroadcast(index);return;}if(kind==='event'&&S.phase===0){const e=eventForWeek(),opts=e.options||e[2],o=opts[index];if(index===99&&opts.every(x=>eventCost(x)>S.money)){apply([0,0,0,0],-1,0);log('Doraźna akcja wolontariuszy')}else{if(!o||eventCost(o)>S.money)return;if(e.options){if(e.arc||e.person)applyNarrative(index,e);const v=o[1];S.money+=v.budget||0;S.trust=clamp(S.trust+(v.trust||0),0,100);S.groups=S.groups.map(x=>clamp(x+((v.national||0)+(S.staff?.includes('press')?.25:0))*(.85+S.trust/300)*(.86+(S.people?.filter(p=>p.active).length||4)*.035),3,70));S.regional=S.regional.map(x=>clamp(x+(v.org||0)/12,0,30))}else{apply(o[1],o[2],o[3])}log((e.title||e[0])+' — '+o[0])}if(broadcastForWeek())startBroadcast();else S.phase=1;render();if(S.phase===4)renderBroadcast();else{$('feedback').textContent='Korespondent: decyzja odnotowana w gazetach.';$('feedback').classList.remove('hidden');}$('feedback').classList.remove('hidden')}else if(kind==='region'&&S.phase===1){if(index!==9){if(!REGIONS[index]||S.money<700)return;apply([0,0,0,0],1,700,index);S.selectedRegion=index;log('Spotkanie w regionie '+REGIONS[index].name)}else{if(S.money>=700)return;log('Brak środków na wyjazd')}S.phase=2;render()}else if(kind==='hire'&&S.phase===2){
  const person=STAFF_ROLES[index];if(!person||S.staff.includes(person.id)||S.staff.length>=3||S.money<3200)return;
  S.money-=3200;S.staff.push(person.id);S.trust=clamp(S.trust+1,0,100);
  log('Zatrudniono: '+person.name+'.');
@@ -291,7 +342,7 @@ function coalitionClick(e){
 }
 function reset(){S=null;show('setup')}
 function exportSave(){if(!S)return;const b=new Blob([JSON.stringify({format:'wybory2040-save',version:2,state:S},null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='wybory2040-tydzien-'+(S.week+1)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-async function importSave(input){const file=input.files?.[0];if(!file)return;try{if(file.size>1000000)throw Error('Plik zbyt duży');const o=JSON.parse(await file.text()),s=o.state;if(o.format!=='wybory2040-save'||!s||!Array.isArray(s.groups)||s.groups.length!==4||!Array.isArray(s.regional)||s.regional.length!==9||!Number.isInteger(s.week)||s.week<0||s.week>29||![0,1,2,3].includes(s.phase)||typeof s.name!=='string'||s.name.length>32||!Number.isFinite(s.money)||!Number.isFinite(s.trust)||!Array.isArray(s.history))throw Error('Nieprawidłowy zapis');S={...s,name:s.name.slice(0,32),history:s.history.slice(0,90),done:Boolean(s.done),staff:Array.isArray(s.staff)?s.staff.filter(id=>STAFF_ROLES.some(r=>r.id===id)).slice(0,3):[]};ensureNarrative();show('game');render();$('saveInfo').textContent='Wczytano tydzień '+(S.week+1)}catch(e){$('saveInfo').textContent='Błąd zapisu: '+e.message}finally{input.value=''}}
+async function importSave(input){const file=input.files?.[0];if(!file)return;try{if(file.size>1000000)throw Error('Plik zbyt duży');const o=JSON.parse(await file.text()),s=o.state;if(o.format!=='wybory2040-save'||!s||!Array.isArray(s.groups)||s.groups.length!==4||!Array.isArray(s.regional)||s.regional.length!==9||!Number.isInteger(s.week)||s.week<0||s.week>29||![0,1,2,3,4].includes(s.phase)||typeof s.name!=='string'||s.name.length>32||!Number.isFinite(s.money)||!Number.isFinite(s.trust)||!Array.isArray(s.history))throw Error('Nieprawidłowy zapis');S={...s,name:s.name.slice(0,32),history:s.history.slice(0,90),done:Boolean(s.done),staff:Array.isArray(s.staff)?s.staff.filter(id=>STAFF_ROLES.some(r=>r.id===id)).slice(0,3):[]};ensureNarrative();show('game');render();$('saveInfo').textContent='Wczytano tydzień '+(S.week+1)}catch(e){$('saveInfo').textContent='Błąd zapisu: '+e.message}finally{input.value=''}}
 $('start').addEventListener('click',start);$('restart').addEventListener('click',reset);$('playAgain').addEventListener('click',reset);$('next').addEventListener('click',next);$('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-kind]');if(b&&!b.disabled)decide(b.dataset.kind,Number(b.dataset.i))});$('coalitionButton').addEventListener('click',coalition);$('partners').addEventListener('click',coalitionClick);$('backResults').addEventListener('click',()=>show('end'));$('share').addEventListener('click',async()=>{if(!S)return;const msg='WYBORY2040: '+S.name+' zdobywa '+seats()[0]+' mandatów!';try{await navigator.clipboard.writeText(msg);$('copyStatus').textContent='Wynik skopiowany.'}catch{$('copyStatus').textContent=msg}});
 
 $('exportSave').addEventListener('click',exportSave);$('importSave').addEventListener('change',e=>importSave(e.target));
