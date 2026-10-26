@@ -180,7 +180,7 @@ function renderAtlas(){
  const r=REGIONS[atlasSelected],votes=pollRegion(atlasSelected);
  const seatsEstimate=Math.max(1,Math.round(180*r.population/REGIONS.reduce((n,v)=>n+v.population,0)));
  $('atlasDetail').innerHTML='<strong>'+esc(r.name)+'</strong> · '+votes[0].toFixed(1)+'% Twojego poparcia · ok. '+seatsEstimate+' mandatów'+
- (canChoose?' <button class="btn alt" data-atlas-visit="'+atlasSelected+'" '+(S.money<700?'disabled':'')+'>Wyślij sztab (700 zł)</button>':' · Wybierz region na mapie');
+ (canChoose?' <button class="btn alt" data-atlas-visit="'+atlasSelected+'" '+(S.money<700||S.energy<8?'disabled':'')+'>Wyślij sztab (700 zł)</button>':' · Wybierz region na mapie');
 }
 function renderStaffDesk(){
  const target=$('staffDesk');if(!target||!S)return;ensureNarrative();
@@ -210,9 +210,9 @@ function staffConversation(id,bonus){
 }
 document.addEventListener('click',e=>{
  const g=e.target.closest('[data-atlas-region]');
- if(g&&S){atlasSelected=Number(g.dataset.atlasRegion);renderAtlas();return;}
+ if(g&&S){atlasSelected=Number(g.dataset.atlasRegion);S.selectedRegion=atlasSelected;renderAtlas();saveAutomatically();return;}
  const visit=e.target.closest('[data-atlas-visit]');
- if(visit&&S&&S.phase===1&&!S.done&&S.money>=700){S.selectedRegion=Number(visit.dataset.atlasVisit);planAction('field');window.openGameTab?.('campaign');return;}
+ if(visit&&S&&S.phase===1&&!S.done&&S.money>=700&&S.energy>=8){S.selectedRegion=Number(visit.dataset.atlasVisit);planAction('field');window.openGameTab?.('campaign');return;}
  const train=e.target.closest('[data-staff-train]');if(train&&S){trainStaff(train.dataset.staffTrain);return;}
  const roster=e.target.closest('[data-staff-roster]');if(roster&&S){manageStaff(roster.dataset.staffRoster);return;}
  const talk=e.target.closest('[data-staff-talk]');
@@ -603,7 +603,7 @@ const PLAN_ACTIONS=[
  {id:'diplomacy',label:'Rozmowy z innymi partiami',energy:5,cost:600,desc:'Przygotowuje grunt pod przyszłą koalicję.',category:'strategy'},
  {id:'counter',label:'Odpowiedź na ofensywę rywala',energy:7,cost:1050,desc:'Ogranicza wpływy rywala w wybranym województwie.',category:'region'},
  {id:'research',label:'Analiza i przygotowanie programu',energy:4,cost:850,desc:'Poprawia zaufanie i program partii.',category:'strategy'},
- {id:'rest',label:'Odpoczynek sztabu',energy:0,cost:0,desc:'Mały darmowy wzrost zaufania.',category:'strategy'}
+ {id:'rest',label:'Odpoczynek sztabu',energy:0,cost:0,desc:'Regeneruje 18 energii i zmniejsza presję medialną.',category:'strategy'}
 ];
 function setupTurn(){
  if(!S)return;
@@ -696,7 +696,7 @@ decide=function(kind,index){
  return LEGACY_DECIDE(kind,index);
 };
 next=function(){if(!S?.done)return;const oldWeek=S.week;LEGACY_NEXT();if(S&&S.week!==oldWeek){resolvePendingStories();S.turn=null;setupTurn();render();}};
-$('choices').addEventListener('change',e=>{if(!S)return;if(e.target.id==='planRegion'){S.selectedRegion=clamp(Number(e.target.value)||0,0,REGIONS.length-1);render();}else if(e.target.id==='planCategory'){setupTurn();S.turn.category=e.target.value;render();}});
+$('choices').addEventListener('change',e=>{if(!S)return;if(e.target.id==='planRegion'){S.selectedRegion=clamp(Number(e.target.value)||0,0,REGIONS.length-1);atlasSelected=S.selectedRegion;render();}else if(e.target.id==='planCategory'){setupTurn();S.turn.category=e.target.value;render();}});
 $('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-plan],button[data-kind="plan-finish"]');if(!b)return;e.stopPropagation();if(b.dataset.plan)planAction(b.dataset.plan);else finishTurn();});
 
 
