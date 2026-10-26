@@ -52,3 +52,7 @@ Interfejs ma responsywne reguły CSS, w tym szerokości do 680 px: przewijane do
 Na początku gry cztery stanowiska są obsadzone przez założycieli partii. Nie ma już oddzielnego, dublującego się sztabu ekspertów. Można zwolnić członka kierownictwa, pozostawiając stanowisko puste (brak kosztu i bonusu). Przy wakacie gra pokazuje **trzy konkretne kandydatury na dane stanowisko**, z porównaniem umiejętności, lojalności, jednorazowego kosztu zatrudnienia i tygodniowej pensji. Oferty można podejrzeć także przed zwolnieniem. Zatrudniona osoba rozpoczyna na poziomie 1, z własnymi statystykami — nie dziedziczy lojalności ani szkoleń poprzednika. Szkolenie kosztuje 2100 zł za poziom, maksymalny poziom to 3. Pensje są wliczane w bilans finansowy tygodnia.
 
 Kolejne pomysły (krótsza kampania, koalicje, rządzenie, transfery polityków, wybory prezydenckie) opisano w [PLAN_KARIERY_POLITYCZNEJ.md](PLAN_KARIERY_POLITYCZNEJ.md). Są to propozycje na następne etapy; bieżąca wersja nadal trwa 30 tygodni.
+
+## Karty postaci (wdrożone)
+
+Zakładka **Politycy** pokazuje karty czterech stanowisk kierownictwa, umożliwia otwarcie pełnego profilu i przejście do rekrutacji w przypadku wakatu. Profil zawiera imię i nazwisko, funkcję, lojalność, doświadczenie, umiejętność, tygodniową pensję oraz poglądowe parametry poparcia osobistego, debatowania i ryzyka kontrowersji. Te trzy ostatnie są na razie wartościami modelowymi wyliczanymi ze statystyk postaci, a nie niezależną mechaniką wyborów prezydenckich czy afer.
