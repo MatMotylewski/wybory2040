@@ -126,6 +126,7 @@ function storyForWeek(){
  ensureNarrative();
  const aftermath=STORY_ARCS.find(x=>x.follow===S.week&&S.arcs[x.id]);
  if(aftermath){
+  legacyComplete(aftermath.title,'Wcześniejszy wybór wpływa na obecną sprawę.');
   const branch=S.arcs[aftermath.id],outcome={
    fundusz:{clean:['Kontrola finansowania kończy się pochwałą','Jawność wcześniejszej decyzji zwiększyła zaufanie.',{trust:5,national:.6}],hidden:['Audytorzy pytają o tajną wpłatę','Dziennikarze znaleźli ślad ukrytego finansowania.',{trust:-9,national:-1.1}],open:['Jawna umowa pod lupą','Dokumenty są dostępne, ale opozycja krytykuje kompromis.',{trust:1,national:.25}]},
    fabryka:{workers:['Pracownicy wracają do negocjacji','Związki zapamiętały Twoją obecność podczas kryzysu.',{trust:4,national:.8}],owners:['Fabryka zwalnia część załogi','Wcześniejsza rozmowa z właścicielami wywołuje pytania.',{trust:-5,national:-.6}],mediators:['Mediacja przynosi porozumienie','Niezależny zespół doprowadził do kompromisu.',{trust:4,national:.5}]},
@@ -423,8 +424,8 @@ function initializeGameTabs(){
  const tabs=[...document.querySelectorAll('[data-game-tab]')];if(!tabs.length)return;
  const root=$('game'),columns=root.querySelector('.columns');if(!columns)return;
  const article=root.querySelector('.article');
- const sectionIds=['campaign','regions','polls','staff','media','finance'];
- const targets={campaign:article,regions:root.querySelector('.atlas-wrap'),polls:$('poll'),staff:$('staffDesk'),media:$('rivalDesk'),finance:$('financeDesk')};
+ const sectionIds=['campaign','regions','polls','staff','media','finance','legacy'];
+ const targets={campaign:article,regions:root.querySelector('.atlas-wrap'),polls:$('poll'),staff:$('staffDesk'),media:$('rivalDesk'),finance:$('financeDesk'),legacy:$('legacyDesk')};
  const panes={};
  for(const id of sectionIds){const pane=document.createElement('section');pane.className='game-pane';pane.dataset.pane=id;pane.hidden=id!=='campaign';panes[id]=pane;root.appendChild(pane);}
  panes.campaign.appendChild(article);
@@ -433,7 +434,7 @@ function initializeGameTabs(){
  append(panes.polls,['poll','groups','forecastDesk']);
  append(panes.staff,['characterRoster','staffDesk']);
  append(panes.media,['history','rivalDesk']);
- append(panes.finance,['financeDesk']);
+ append(panes.finance,['financeDesk']);const archive=document.createElement('div');archive.id='legacyDesk';panes.legacy.appendChild(archive);
  columns.classList.add('hidden');
  function switchTab(id){
   if(!panes[id])return;activeGameTab=id;
@@ -588,7 +589,7 @@ function resolvePendingStories(){
   ][issue.kind]||['Sprawa powraca',0,0];
   S.trust=clamp(S.trust+traits[1],0,100);
   S.groups=S.groups.map(x=>clamp(x+traits[2],3,70));
-  log('POWRÓT SPRAWY: '+issue.title+' — '+traits[0]+'.');
+  log('POWRÓT SPRAWY: '+issue.title+' — '+traits[0]+'.');legacyComplete(issue.title,traits[0]+' ('+(traits[1]>=0?'+':'')+traits[1]+' wiarygodności).');
   if(!S.storyHeadlines)S.storyHeadlines=[];
   S.storyHeadlines.unshift('Sprawa „'+issue.title+'”: '+traits[0]+'.');
  }
@@ -758,3 +759,123 @@ $('nightNext')?.addEventListener('click',()=>{
  }
  saveAutomatically();
 });
+
+
+// ARCHIWUM POLITYCZNE: historia, obietnice, pamięć wydarzeń i reputacja lidera
+function ensureLegacy(){
+ if(!S)return;
+ S.legacy=S.legacy||{decisions:[],promises:[],chapters:[],reputation:{dialog:0,policy:0,attack:0,field:0}};
+ if(!Array.isArray(S.legacy.decisions))S.legacy.decisions=[];
+ if(!Array.isArray(S.legacy.promises))S.legacy.promises=[];
+ if(!Array.isArray(S.legacy.chapters))S.legacy.chapters=[];
+ if(!S.legacy.reputation)S.legacy.reputation={dialog:0,policy:0,attack:0,field:0};
+}
+function legacyRecord(title,choice,{followWeek=null,kind='news',promise=false}={}){
+ ensureLegacy();
+ const id='decyzja-'+S.week+'-'+S.legacy.decisions.length;
+ S.legacy.decisions.unshift({id,week:S.week,title:String(title).slice(0,100),choice:String(choice).slice(0,170),followWeek,status:followWeek!==null?'pending':'closed',outcome:'',kind});
+ if(promise){
+  const deadline=Math.min(29,S.week+5);
+  S.legacy.promises.push({id:'obietnica-'+id,decisionId:id,title:String(title).slice(0,100),text:String(choice).slice(0,170),created:S.week,deadline,status:'ongoing'});
+ }
+ S.legacy.decisions=S.legacy.decisions.slice(0,140);
+}
+function legacyComplete(title,result){
+ ensureLegacy();
+ const item=S.legacy.decisions.find(x=>x.title===title&&x.status==='pending');
+ if(item){item.status='closed';item.outcome=String(result);item.resolved=S.week;
+  S.legacy.lastReminder={title,choice:item.choice,result:item.outcome,week:item.week};
+ }
+}
+function legacyReputation(kind){
+ ensureLegacy();
+ const rep=S.legacy.reputation;
+ const key=['policy','dialog','attack'][Math.max(0,Math.min(2,kind))];
+ rep[key]=(rep[key]||0)+1;
+}
+function legacyPromises(){
+ ensureLegacy();
+ for(const p of S.legacy.promises){
+  if(p.status!=='ongoing'||S.week<=p.created)continue;
+  const done=S.legacy.decisions.some(d=>d.week>p.created&&d.week<=p.deadline&&d.choice!==p.text&&(
+   d.kind==='action'&&(/program|analiz|spotkan|teren|debat|wolontariusz|reform/i.test(d.choice))||
+   d.kind==='news'&&d.title!==p.title&&(/konsult|porozumien|plan|pomoc/i.test(d.choice))
+  ));
+  if(done){p.status='fulfilled';p.closedWeek=S.week;S.trust=clamp(S.trust+2,0,100);legacyComplete(p.title,'Obietnica dotrzymana. +2 wiarygodności.');}
+  else if(S.week>=p.deadline){p.status='broken';p.closedWeek=S.week;S.trust=clamp(S.trust-3,0,100);legacyComplete(p.title,'Obietnica niespełniona. −3 wiarygodności.');}
+ }
+}
+function legacyChapter(){
+ ensureLegacy();
+ if(S.week===0||S.week%5!==0||S.legacy.chapters.some(x=>x.week===S.week))return;
+ const previous=S.legacy.decisions.filter(d=>d.week>=S.week-5&&d.week<S.week);
+ const promises=S.legacy.promises.filter(p=>p.created>=S.week-5&&p.created<S.week);
+ S.legacy.chapters.unshift({week:S.week,title:'Bilans rozdziału '+Math.ceil(S.week/5),
+  top:previous.slice(0,3).map(d=>d.title+' — '+d.choice),
+  fulfilled:promises.filter(p=>p.status==='fulfilled').length,
+  open:promises.filter(p=>p.status==='ongoing').length,
+  broken:promises.filter(p=>p.status==='broken').length,
+  poll:national()[0],mandates:seats()[0]});
+}
+function reputationLabel(){
+ ensureLegacy();
+ const r=S.legacy.reputation;
+ const labels={policy:'Reformator',dialog:'Negocjator',attack:'Polityczny wojownik',field:'Działacz terenowy'};
+ const entries=Object.entries(r).sort((a,b)=>b[1]-a[1]);
+ return entries[0][1]>0?labels[entries[0][0]]:'Debiutant';
+}
+let legacyFilter='all';
+function legacyView(){
+ ensureLegacy();
+ const slot=$('legacyDesk');if(!slot)return;
+ const l=S.legacy,filters=[['all','Wszystkie'],['pending','W toku'],['promises','Obietnice'],['chapters','Rozdziały']];
+ let contents='';
+ if(legacyFilter==='chapters')contents=l.chapters.map(c=>'<article class="legacy-chapter"><h3>'+esc(c.title)+'</h3><p>Sondaż: '+c.poll.toFixed(1)+'% · Prognoza: '+c.mandates+' mandatów</p>'+c.top.map(v=>'<p>'+esc(v)+'</p>').join('')+'<small>Obietnice: '+c.fulfilled+' spełnionych, '+c.open+' w toku, '+c.broken+' złamanych.</small></article>').join('');
+ else if(legacyFilter==='promises')contents=l.promises.slice().reverse().map(p=>'<article class="legacy-card"><small>TYDZIEŃ '+(p.created+1)+' · TERMIN TYDZIEŃ '+(p.deadline+1)+'</small><h4>'+esc(p.title)+'</h4><p>'+esc(p.text)+'</p><div class="legacy-status">'+({ongoing:'W TOKU',fulfilled:'DOTRZYMANA',broken:'NIESPEŁNIONA'}[p.status]||p.status)+'</div></article>').join('');
+ else contents=l.decisions.filter(d=>legacyFilter==='all'||d.status==='pending').map(d=>'<article class="legacy-card"><small>TYDZIEŃ '+(d.week+1)+' · '+(d.status==='pending'?'W TOKU — POWRÓT W TYGODNIU '+((d.followWeek??d.week)+1):'ZAPIS ARCHIWALNY')+'</small><h4>'+esc(d.title)+'</h4><p>'+esc(d.choice)+'</p>'+(d.outcome?'<p><strong>Skutek:</strong> '+esc(d.outcome)+'</p>':'')+'</article>').join('');
+ slot.innerHTML='<div class="kicker">ARCHIWUM REDAKCJI</div><h2 class="section-title">Teczka polityka</h2><p>Twój styl: <strong>'+esc(reputationLabel())+'</strong>. Decyzje programowe, dialog i działania terenowe kształtują reputację lidera.</p>'+
+ '<div class="legacy-tabs">'+filters.map(([id,label])=>'<button type="button" data-legacy-filter="'+id+'" aria-pressed="'+(legacyFilter===id)+'">'+label+'</button>').join('')+'</div>'+(contents||'<p class="small">Brak wpisów w tej kategorii.</p>');
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-legacy-filter]');if(!b)return;legacyFilter=b.dataset.legacyFilter;legacyView();});
+const MEMORY_DECIDE=decide;
+decide=function(kind,index){
+ if(S&&kind==='event'&&S.phase===0&&index!==99){
+  const e=eventForWeek(),o=(e.options||e[2])[index];
+  if(o&&eventCost(o)<=S.money){
+   const title=e.title||e[0],chosen=o[0],arc=STORY_ARCS.find(a=>a.id===e.arc);
+   let follow=arc?arc.follow:null;
+   if(follow===null&&S.week%2===0&&!e.person){follow=S.week+2+(S.week%3);if(follow>=30)follow=null;}
+   legacyRecord(title,chosen,{followWeek:follow,promise:/(zapowiedz|obieca|program|plan|zobowiąż|reform)/i.test(chosen)&&S.week<25});
+   legacyReputation(index);
+  }
+ }
+ return MEMORY_DECIDE(kind,index);
+};
+const MEMORY_ACTION=planAction;
+planAction=function(id){
+ const before=S?.turn?.points??null,week=S?.week;
+ MEMORY_ACTION(id);
+ if(S&&S.week===week&&S.turn?.points<before){
+  const labels={field:'Objazd terenu',volunteers:'Sieć wolontariuszy',media:'Działania medialne',debate:'Przygotowanie debaty',fundraise:'Zbiórka',diplomacy:'Rozmowy polityczne',research:'Praca nad programem',rest:'Odpoczynek',counter:'Kontratak'};
+  legacyRecord('Działanie sztabu',labels[id]||id,{kind:'action'});
+  if(['field','volunteers'].includes(id)){ensureLegacy();S.legacy.reputation.field++;}
+  if(['diplomacy','research'].includes(id))legacyReputation(id==='research'?0:1);
+  saveAutomatically();
+ }
+};
+const MEMORY_NEXT=next;
+next=function(){
+ const old=S?.week;
+ MEMORY_NEXT();
+ if(S&&S.week!==old){legacyPromises();legacyChapter();saveAutomatically();render();}
+};
+const MEMORY_RENDER=render;
+render=function(){
+ MEMORY_RENDER();
+ if(!S)return;
+ ensureLegacy();legacyView();
+ const notice=$('politicalReminder'),r=S.legacy.lastReminder;
+ if(notice){notice.innerHTML=r&&r.week<S.week?'<div class="legacy-notice"><strong>POWRÓT SPRAWY SPRZED '+(S.week-r.week)+' TYGODNI</strong><p>'+esc(r.title)+': '+esc(r.choice)+'</p><p>'+esc(r.result)+'</p></div>':'';}
+};
+const MEMORY_EPILOGUE=renderEpilogue;
+renderEpilogue=function(){MEMORY_EPILOGUE();if($('epilogue')&&S){ensureLegacy();$('epilogue').innerHTML+='<p class="frame"><strong>Twój styl polityczny:</strong> '+esc(reputationLabel())+'.</p>';}}
