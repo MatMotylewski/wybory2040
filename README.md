@@ -1,107 +1,40 @@
 # WYBORY2040 — Dziennik Wyborczy
 
-Grywalny, statyczny symulator kampanii wyborczej w fikcyjnej Republice Nowin, utrzymany w klimacie dawnej gazety.
+Polskojęzyczna strategiczna gra wyborcza w klimacie retro gazety. Kampania trwa 30 tygodni i rozgrywa się w fikcyjnym świecie politycznym opartym o 16 rzeczywistych województw Polski. Partie, postacie, kampania, sondaże i wydarzenia są fikcyjne.
 
-## Zaimplementowano — etap III
-- **30 tygodni** kampanii, podzielonych na sześć rozdziałów.
-- **144 wydarzenia fabularne w puli**, z której gra dobiera historie podczas kampanii; dodatkowo pozostaje starsza pula 30 wydarzeń jako wariant awaryjny.
-- **Cztery decyzje tygodniowo**: reakcja na depeszę, wybór regionu, akcja sztabu i plan strategiczny (łącznie minimum 120 decyzji na kampanię).
-- **9 regionów** o odmiennej strukturze elektoratu i wadze ludności.
-- **5 fikcyjnych partii rywalizujących** z komitetem gracza.
-- Budżet kampanii, zbiórki, składki, wiarygodność, struktury regionalne i sondaże.
-- **180 mandatów** rozdzielanych regionalnie metodą d'Hondta (próg 5% w skali kraju).
-- **Trzy rundy negocjacji koalicyjnych** z możliwością przyjęcia i odrzucenia ofert; wynik zależy od programu, wiarygodności i działań dyplomatycznych.
-- **Czterech specjalistów** do zatrudnienia (teren, media, finanse, sondaże); maksymalnie trzech w jednej kampanii.
-- Responsywny wygląd gazety w stylistyce PRL.
-- Bez logowania i backendu; stan rozgrywki tylko w pamięci strony. Eksport i import zapisu jako lokalny plik JSON.
+## Uruchamianie
+Otwórz projekt w Visual Studio Code i uruchom `index.html` przez Live Server, ewentualnie otwórz go bezpośrednio w przeglądarce. W katalogu powinny znajdować się `index.html`, `game.js`, `data.js` oraz folder `assets/candidates/` z portretami.
 
-## Status i ograniczenia
-To rozszerzona, grywalna wersja rozwojowa, a nie jeszcze pełne zaplanowane 2–3 godziny. Pula zawiera już **144 wydarzenia**, lecz ich balans i rozkład w 30 tygodniach wymagają dalszego dopracowania. Negocjacje koalicyjne mają już trzy rundy, ustępstwa i ryzyko odrzucenia oferty, ale wymagają rozbudowania o szczegółowe umowy programowe, relacje między członkami sztabu, odroczone konsekwencje decyzji i epilogi. Długość gry nie została zmierzona z udziałem graczy.
+Aktualizacja lokalnej kopii: `git pull --rebase origin main` (tylko przy czystym lub zatwierdzonym drzewie roboczym). Testy Node.js: `npm test`.
 
-## Uruchomienie
-Otwórz `index.html` w przeglądarce. W tym samym katalogu muszą znajdować się `game.js` i `data.js`.
+## Jak grać
+1. Wybierz nazwę partii, program, poziom trudności, nazwisko i płeć kandydata, jego przeszłość oraz portret.
+2. Na początku tygodnia odpowiedz na depeszę. W niektórych tygodniach rozegraj trzyrundową debatę lub kryzys medialny.
+3. Otrzymujesz **3 punkty działań**. Możesz przeznaczyć je na teren, media, finanse, program lub rozmowy z innymi partiami; możesz też zakończyć tydzień przed ich wykorzystaniem.
+4. W zakładce **Sztab** zatrudniaj, zwalniaj i szkol specjalistów (maksymalnie trzech). W zakładce **Finanse** zarządzaj biurami, sponsorami, pożyczkami oraz zaległościami.
+5. Realizuj co pięć tygodni regionalną misję rozdziału. Wspieraj kluczowe województwa, pilnuj budżetu, energii sztabu i presji medialnej.
+6. Po zamknięciu tygodnia przeczytaj **Dziennik Wyborczy**: bilans poparcia, mandatów, pieniędzy i aktualne depesze konkurencji.
+7. Po tygodniu 30 rozegraj trzy depesze nocy wyborczej. Jeśli zdobędziesz mandaty, możesz negocjować koalicję.
 
-## Publikacja na GitHub Pages — później
-1. Otwórz https://github.com/MatMotylewski/wybory2040/settings/pages
-2. Source: **Deploy from a branch**.
-3. Branch: **main**, folder: **/ (root)**, przycisk **Save**.
-4. Po publikacji: https://matmotylewski.github.io/wybory2040/
+## Zawartość
+- 30 tygodni, sześć rozdziałów i misje regionalne.
+- Pula 144 depesz (12 tematów i zestawów bazowych odpowiedzi), sześć powiązanych wątków fabularnych z odroczonymi skutkami oraz krótsze konsekwencje zwykłych depesz. Zwykła depesza nie powtarza się w jednej kampanii.
+- 16 polskich województw z granicami administracyjnymi, regionalnym poparciem, biurami i możliwością interakcji z mapą.
+- Pięć fikcyjnych ugrupowań rywali, działających co tydzień i atakujących m.in. wyrównane regiony.
+- Cztery specjalizacje ekspertów, rozwój do poziomu 3, relacje z kierownictwem i umiejętności.
+- Cztery pochodzenia kandydata z odmiennymi bonusami, personalizacja wizerunku.
+- Ekonomia kampanii, sponsorzy, zadłużenie, energia, presja medialna i przygotowanie do koalicji.
+- 180 mandatów w fikcyjnym parlamencie, regionalny przydział metodą d'Hondta oraz negocjacje o 91 mandatów.
+- Sześć zakładek ograniczających nadmiar informacji i podział dostępnych działań na kategorie.
 
-## Prywatność
-Nie ma kont, własnych cookies, bazy danych ani localStorage. Brak telemetrii i zapisu postępów na serwerze. Gra nie pobiera zewnętrznych fontów ani innych zasobów sieciowych. GitHub Pages może prowadzić standardowe logi hostingu.
+## Zapis gry i prywatność
+Gra nie wymaga rejestracji ani serwera. Automatyczny zapis jest przechowywany **lokalnie w pamięci przeglądarki (localStorage)**, więc może zniknąć po usunięciu danych witryny. Dostępny jest również eksport/import pliku JSON. Gra nie wysyła zapisów do twórcy. Zapis ze starej wersji posiadającej 9 regionów nie jest zgodny z nowym podziałem.
 
-Wszystkie partie i regiony są fikcyjne. Symulacja nie przedstawia prawdziwych sondaży.
+## Mapa — źródło
+Wektory granic województw pozyskano z publicznego zbioru [GeoJSON Polska — Województwa/Powiaty/Gminy](https://github.com/waszkiewiczja/GeoJSON-Polska-Wojewodztwa-Powiaty-Gminy), na podstawie danych Geoportalu z sierpnia 2025, oznaczonych przez autora jako „free to use”. Punkty uproszczono na potrzeby wyświetlania SVG. Kształty i nazwy województw są rzeczywiste, ale model wyborczy i ludnościowy stanowi fikcyjną symulację.
 
-## Aktualizacja: zatwierdzona szata graficzna
+## Testy i ograniczenia
+Przeprowadzono 72 pełne symulacje logiki kampanii w trzech poziomach trudności; każda ukończyła 30 tygodni i przydzieliła 180 mandatów. Zaktualizowano testy regresyjne w `tests/simulation.test.cjs`. **Nie przeprowadzono jeszcze manualnego testu całego interfejsu na wszystkich typach przeglądarek i urządzeń.** Zbalansowanie strategii wymaga rozgrywek z ludźmi. Pula depesz nadal używa powtarzanych grup bazowych odpowiedzi, choć nowe cele, działania i historie ograniczają monotonię.
 
-Interfejs został dostosowany do zaakceptowanych makiet w stylistyce drukowanej gazety PRL: afisze, kremowy papier, czarne ramki, czerwone stemple, prasowe sondaże, panel dziewięciu regionów i pasek postępu kampanii. Zmiany dotyczą pliku `index.html` oraz widoków generowanych przez `game.js`.
-
-## Kontrola przebiegu
-
-Wykonano 100 automatycznych symulacji pełnych 30 tygodni z wyborem dostępnych finansowo decyzji. Każda kampania zakończyła się przeliczeniem 180 mandatów. W 100 podejściach wylosowano łącznie 135 różnych tematów spośród biblioteki 144 depesz; ponadto przewidziano 6 fabularnych punktów zwrotnych. Automatyczne testy logiki nie zastępują testów użyteczności na telefonie i nie potwierdzają jeszcze długości rozgrywki 2–3 godziny.
-
-## Kolejne zadania
-
-- Scenariuszowo powiązane wydarzenia i konsekwencje długoterminowe zamiast niezależnych depesz.
-- Interaktywna mapa kraju zamiast obecnego atlasu kafelkowego.
-- Minigra debaty oraz oddzielne ekrany mediów, finansów i sztabu.
-- Testy manualne, balans trudności i pomiar czasu kampanii.
-
-## Testy automatyczne
-
-Po instalacji Node.js uruchom `npm test` w katalogu repozytorium. Testy znajdują się w `tests/simulation.test.cjs` i nie wymagają dodatkowych bibliotek. Obejmują 40 kompletowanych kampanii w ramach powtarzalnego testu; osobno przeprowadzono serię 100 symulacji podczas rozwoju. Nadal potrzebne są testy manualne wyglądu i użyteczności na prawdziwych telefonach.
-
-## Debaty i kryzysy medialne (etap kolejny)
-
-W tygodniach **5, 11, 19 i 26** gra przełącza się na trzyrundowy format rozmowy: dwie debaty wyborcze, wywiad dla gazety i kryzys medialny. Odpowiedzi wpływają na wiarygodność, zainteresowanie mediów, poparcie oraz lojalność rzecznika. Wydarzenia są częścią rozgrywki, więc nie można ich pominąć; zapisy stanu obsługują także trwającą debatę. Scenariusze są fikcyjne.
-
-Test automatyczny przechodzi również przez wszystkie 12 rund specjalnych w każdym z 40 scenariuszy kampanii.
-
-## Finanse i gospodarka sztabu
-
-- Księga rachunkowa pokazuje stan gotówki, zaległości i zadłużenie.
-- Można otwierać maksymalnie dwa biura na region, każde z tygodniowym kosztem utrzymania.
-- Dostępne są jawne pożyczki z kosztem spłaty, czterej fikcyjni darczyńcy i spłata zaległości.
-- Niektóre źródła finansowania powodują późniejsze wydarzenia reputacyjne.
-- Rozliczenie tygodniowe obejmuje składki, biura oraz koszty specjalistów; w razie braku środków rosną zaległości zamiast blokować grę.
-
-Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z pożyczkami i wydatkami na biura. Wyniki dotyczą testów symulacyjnych, nie pełnego testu graficznego w przeglądarce.
-
-## Autonomiczna kampania rywali i barometr sondażowy
-
-- Pięć fikcyjnych konkurencyjnych partii wykonuje niezależne działania po każdym ukończonym tygodniu.
-- Ich akcje wpływają na przewagi w poszczególnych regionach i na krajowe poparcie.
-- Dostępna jest kronika ostatnich posunięć rywali oraz 12-punktowy wykres historii sondażu ugrupowania gracza.
-- Dane aktywności i sondaży są częścią ręcznego zapisu JSON.
-- Zweryfikowano 40 pełnych kampanii, w których rywale zmieniali wpływy regionalne; każdy wynik wyborów sumował się do 180 mandatów.
-
-## Trudność i prognoza parlamentarna
-
-- Poziomy: Debiutant, Standard i Weteran; wpływają na siłę partii gracza oraz aktywność przeciwników.
-- W regionalnym modelu poparcia istnieje pula wyborców niezdecydowanych. Łączne wskazania dla partii mogą więc być mniejsze niż 100%.
-- Panel prognozy pokazuje mandaty, dystans do większości i regiony, w których rywalizacja jest wyrównana.
-- Powtarzanie tej samej taktyki w kolejnych tygodniach przynosi malejące korzyści.
-- Przetestowano 36 pełnych rozgrywek na trzech poziomach trudności. Średnia mandatów partii gracza w tej próbce: Debiutant 110, Standard około 79, Weteran około 49. To orientacyjny wynik określonych automatycznych strategii, nie pełny balans.
-
-## Wydanie kandydackie 1.0 — cztery etapy rozbudowy
-
-- **Fabuła i zakończenia:** epilogi zależne od wyniku mandatowego, koalicji, wcześniejszych decyzji, stanu kasy i lojalności sztabu.
-- **Mechanika:** trzy poziomy trudności, aktywni rywale, niezdecydowani wyborcy, malejące efekty powtarzania taktyk i trzy rundy rozmów koalicyjnych.
-- **Interfejs:** samouczek z poziomu kampanii, poprawki mobilne, dostępne opisy SVG mapy, tryb ograniczonego ruchu, gazetowy ekran epilogu.
-- **Testy:** 42 automatyczne pełne kampanie (po 14 na każdy poziom) zakończyły się poprawnie wraz z debatami, liczeniem 180 mandatów, epilogami i negocjacjami. Weryfikacja funkcjonalna nie zastępuje testów wizualnych ani pomiaru realnych 150–180 minut gry.
-
-**Stan publikacji:** kod jest na gałęzi `main`; GitHub Pages nie zostało automatycznie włączone przez narzędzia repozytorium. Aby opublikować grę, właściciel musi wejść w `Settings → Pages` i wybrać `Deploy from a branch → main → / (root)`. Nie należy uznawać gry za wydaną publicznie, dopóki adres strony nie odpowiada prawidłowo i nie zakończą się testy przeglądarkowe.
-
-## Uporządkowanie interfejsu i województwa
-
-Widok kampanii jest podzielony na sześć zakładek: Kampania, Województwa, Sondaże, Sztab, Media oraz Finanse. Zamiast dziewięciu fikcyjnych regionów symulacja używa 16 rzeczywistych nazw województw Polski i odrębnych regionalnych modeli poparcia. Atlas jest **schematycznym układem pól**, a nie geograficzną mapą granic województw. Historia oraz partie nadal są fikcyjne. Po zmianie rozmiaru regionów przetestowano 20 pełnych kampanii. Starsze zapisy z układem 9 regionów wymagają nowej gry.
-
-## Uproszczony gameplay i zarządzanie personelem
-
-Specjalistów (maksymalnie trzech jednocześnie) zatrudnia się i zwalnia bezpośrednio w zakładce **Sztab**, niezależnie od czterech etapów tygodniowej tury. Zatrudnienie kosztuje 3200 zł, a cotygodniowe utrzymanie każdego specjalisty 170 zł. Zwolnienie jest darmowe, ale nie zwraca kosztu rekrutacji. Kierownictwo fabularne z lojalnością to oddzielny system rozmów i premii.
-
-Na ekranie **Kampania** wyświetlana jest krótka instrukcja bieżącego etapu (1/4–4/4), zamiast kolejnej długiej listy wyjaśnień. Naprawiono także awaryjny wybór wolontariuszy, gdy gracz nie może opłacić żadnej opcji wydarzenia. Po zmianach poprawnie ukończono 20 symulacji pełnej kampanii, w tym wariant startujący z zerowym budżetem.
-
-## Tworzenie kandydata
-
-Na ekranie startowym możesz podać imię i nazwisko kandydata, wybrać płeć oraz jeden z czterech portretów. Dane postaci zapisują się w pliku stanu gry i pojawiają się podczas kampanii oraz na ekranie wyników. Pliki portretów powinny znaleźć się w `assets/candidates/` pod nazwami `man-1.jpg` – `man-4.jpg` i `woman-1.jpg` – `woman-4.jpg`. Zestaw tych 8 portretów został przygotowany osobno jako archiwum ZIP, ponieważ same pliki JPG nie zostały jeszcze dodane do repozytorium. Bez ich skopiowania przeglądarka nie wyświetli obrazów.
+## Publikacja
+GitHub Pages można uruchomić później przez **Settings → Pages → Deploy from a branch → main / root**. Sama obecność kodu w repo nie oznacza publikacji strony.
