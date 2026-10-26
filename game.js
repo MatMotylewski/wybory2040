@@ -98,6 +98,22 @@ const STORY_ARCS=[
  ['Wykorzystaj informacje w kampanii',{trust:-3,national:1.2},'use'],
  ['Odrzuć współpracę',{trust:0,budget:0},'decline']
  ],follow:22}
+,
+ {id:'samorzad',week:9,title:'Wojewodowie żądają porozumienia',intro:'Samorządy domagają się jasnego podziału środków i wpływu na decyzje państwa.',options:[
+ ['Podpisz pakt regionalny',{trust:3,budget:-1100,org:5},'pact'],
+ ['Zaproponuj reformę centralną',{trust:1,national:.9},'central'],
+ ['Odłóż decyzję',{trust:-2,budget:0},'delay']
+ ],follow:19},
+ {id:'media',week:15,title:'Kto kontroluje pierwszą stronę?',intro:'Duży wydawca proponuje poparcie, ale oczekuje wyłączności na wywiady i materiały.',options:[
+ ['Ujawnij ofertę',{trust:5,budget:0},'public'],
+ ['Przyjmij medialne wsparcie',{trust:-3,national:1.3},'deal'],
+ ['Odmów bez komentarza',{trust:1,budget:0},'silent']
+ ],follow:26},
+ {id:'wolontariusze',week:23,title:'Sztab pęka w szwach',intro:'Wolontariusze domagają się szkoleń i jasnych zasad. Konkurent próbuje przejąć koordynatorów.',options:[
+ ['Zainwestuj w szkolenia',{trust:3,budget:-1800,org:6},'train'],
+ ['Zaoferuj premie liderom',{trust:-1,budget:-3200,national:.8},'bonuses'],
+ ['Zignoruj protest',{trust:-3,budget:0},'ignore']
+ ],follow:28}
 ];
 const CHARACTERS=[
  {id:'treasurer',name:'Helena Wolska',role:'Skarbniczka',loyalty:65},
@@ -113,7 +129,10 @@ function storyForWeek(){
   const branch=S.arcs[aftermath.id],outcome={
    fundusz:{clean:['Kontrola finansowania kończy się pochwałą','Jawność wcześniejszej decyzji zwiększyła zaufanie.',{trust:5,national:.6}],hidden:['Audytorzy pytają o tajną wpłatę','Dziennikarze znaleźli ślad ukrytego finansowania.',{trust:-9,national:-1.1}],open:['Jawna umowa pod lupą','Dokumenty są dostępne, ale opozycja krytykuje kompromis.',{trust:1,national:.25}]},
    fabryka:{workers:['Pracownicy wracają do negocjacji','Związki zapamiętały Twoją obecność podczas kryzysu.',{trust:4,national:.8}],owners:['Fabryka zwalnia część załogi','Wcześniejsza rozmowa z właścicielami wywołuje pytania.',{trust:-5,national:-.6}],mediators:['Mediacja przynosi porozumienie','Niezależny zespół doprowadził do kompromisu.',{trust:4,national:.5}]},
-   redakcja:{independent:['Redakcja publikuje śledztwo','Reporterzy doceniają szacunek do niezależności.',{trust:4,national:.4}],use:['Wyciek rozmów z reporterem','Próba upolitycznienia śledztwa wywołała skandal.',{trust:-8,national:-.9}],decline:['Reportaż ukazuje się bez komentarza','Sztab musi odpowiedzieć na trudne pytania.',{trust:-2,national:-.2}]}
+   redakcja:{independent:['Redakcja publikuje śledztwo','Reporterzy doceniają szacunek do niezależności.',{trust:4,national:.4}],use:['Wyciek rozmów z reporterem','Próba upolitycznienia śledztwa wywołała skandal.',{trust:-8,national:-.9}],decline:['Reportaż ukazuje się bez komentarza','Sztab musi odpowiedzieć na trudne pytania.',{trust:-2,national:-.2}]},
+   samorzad:{pact:['Regionalny pakt procentuje','Samorządowcy uruchomili sieć lokalnych spotkań.',{trust:4,national:.8}],central:['Włodarze krytykują centralę','Część lokalnych działaczy wycofuje wsparcie.',{trust:-3,national:-.4}],delay:['Samorządy czekają na konkrety','Brak decyzji ogranicza wiarygodność obietnic.',{trust:-4,national:-.2}]},
+   media:{public:['Dziennikarze chwalą przejrzystość','Reakcja na próbę nacisku wzmacnia niezależny wizerunek.',{trust:5,national:.4}],deal:['Wyciekła umowa z wydawcą','Rywal przedstawia medialne wsparcie jako układ.',{trust:-8,national:-.8}],silent:['Cisza w redakcjach','Temat znika, ale nie zdobywasz nowych sympatyków.',{trust:1,national:0}]},
+   wolontariusze:{train:['Wolontariusze ruszają w teren','Przygotowane struktury organizują udaną mobilizację.',{trust:4,national:1}],bonuses:['Liderzy zostali, szeregowi protestują','Nierówne premie wywołały spory w zespole.',{trust:-4,national:.1}],ignore:['Rozłam w sztabie terenowym','Część wolontariuszy przechodzi do konkurencji.',{trust:-7,national:-.9}]}
   }[aftermath.id][branch];
   return {title:outcome[0],body:outcome[1],options:[
    ['Przyjmij konsekwencje i przedstaw stanowisko',outcome[2]],
