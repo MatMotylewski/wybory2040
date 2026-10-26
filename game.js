@@ -274,7 +274,7 @@ function renderStaffDesk(){
     '<div class="group"><span>Pensja co tydzień</span><b>'+moneyFmt(p.weekly)+'</b></div>'+
     '<div class="staff-controls"><button data-staff-talk="'+role.id+'" '+(cooldown||S.money<400?'disabled':'')+'>Rozmowa · 400 zł</button>'+
     '<button data-staff-train="'+role.specialty+'" '+(p.level>=3||S.money<2100?'disabled':'')+'>Szkolenie · 2100 zł</button>'+
-    '<button data-staff-fire="'+role.id+'">Zwolnij — zwolnij stanowisko</button></div></section>';
+    '<button data-staff-fire="'+role.id+'">Zwolnij pracownika</button></div><details><summary>Porównaj kandydatów na zastępstwo</summary>'+(PERSONNEL_MARKET[role.id]||[]).map(c=>'<div class="personnel-option"><b>'+esc(c.name)+'</b><small>'+esc(c.flavor)+'</small><p class="small">Umiejętność: '+c.skill.toFixed(2)+' · lojalność: '+c.loyalty+'/100 · zatrudnienie: '+moneyFmt(c.cost)+' · pensja: '+moneyFmt(c.weekly)+'/tydz.</p></div>').join('')+'<p class="small">Aby zatrudnić zastępcę, najpierw zwolnij obecną osobę. Stanowisko będzie puste do chwili wyboru nowej.</p></details></section>';
   }
   return '<section class="staff-person vacancy"><div class="kicker">'+esc(role.title)+'</div>'+
    '<h3>WOLNE STANOWISKO</h3><p class="small">Brak pensji i bonusu. Wybierz jedną z trzech osób do kierownictwa.</p>'+
@@ -608,7 +608,7 @@ function decide(kind,index){if(!S||S.done)return;if(kind==='broadcast'&&S.phase=
  log('Strategia: '+tactic.name);
  S.done=true;render();$('feedback').textContent='Plan strategiczny zakończony. Przed wyborami pozostało '+(30-S.week)+' tygodni.';$('feedback').classList.remove('hidden');
 }}
-function next(){if(!S||!S.done)return;if(S.week===29){finish();return}ensureNarrative();for(const p of S.people.filter(x=>x.active)){const pressure=(S.money<2500?2:0)+(S.trust<42?1:0)+(S.week>=13?1:0);p.loyalty=clamp(p.loyalty-pressure+(S.staff.length>=2?1:0),0,100);}S.week++;weeklyAccounts();auditSponsors();runRivals();S.phase=0;S.done=false;window.openGameTab?.('campaign');render();document.querySelector('.article').scrollIntoView({behavior:'smooth'})}
+function next(){if(!S||!S.done)return;if(S.week===29){finish();return}ensureNarrative();for(const p of S.people.filter(x=>x.active)){const pressure=(S.money<2500?2:0)+(S.trust<42?1:0)+(S.week>=13?1:0)+(p.skill>=1.8?1:0)+(S.finance?.arrears>2500?3:0)+(S.heat>65?1:0);p.loyalty=clamp(p.loyalty-pressure+(S.staff.length>=2?1:0),0,100);}S.week++;weeklyAccounts();auditSponsors();runRivals();S.phase=0;S.done=false;window.openGameTab?.('campaign');render();document.querySelector('.article').scrollIntoView({behavior:'smooth'})}
 function finish(){const n=national(),result=seats(),order=result.map((v,i)=>({i,v})).sort((a,b)=>b.v-a.v);$('outcome').textContent=order[0].i===0?'Zwycięstwo wyborcze!':'Werdykt wyborców';$('resultPct').textContent=n[0].toFixed(1)+'%';$('resultText').textContent=S.name+' zdobywa '+result[0]+' ze 180 mandatów. Do większości potrzeba 91 mandatów.';$('finalPoll').innerHTML=result.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v+' mandatów · '+n[i].toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+(v/180*100).toFixed(1)+'%"></div></div></div>').join('');$('coalitionButton').classList.toggle('hidden',result[0]===0);show('end');renderEpilogue();renderCandidate()}
 const POLITICAL_AXIS=[2,3,1,4,0],PROGRAM_AXIS={economy:4,social:1,green:0,freedom:2};
 function coalition(){
