@@ -20,7 +20,7 @@ function boot(){
  vm.createContext(ctx);
  vm.runInContext(data,ctx,{filename:'data.js'});
  vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,seats,national,coalition,negotiate,STAFF_ROLES,ACTIONS,TACTICS,getState:()=>S};',ctx,{filename:'game.js'});
- return {api:ctx.TEST_API,elements:nodes,data:ctx.window.WYBORY_DATA};
+ return {api:ctx.TEST_API,elements:nodes,get:getElementById,data:ctx.window.WYBORY_DATA};
 }
 test('static assets and narrative library',()=>{
  assert.match(html,/<script src="data\.js"><\/script>/);
@@ -33,8 +33,7 @@ test('static assets and narrative library',()=>{
  assert.equal(Object.keys(data.milestones).length,6);
 });
 test('40 complete, distinct campaigns through parliament and coalition',()=>{
- const {api,elements}=boot();
- const get=id=>elements.get(id);
+ const {api,get}=boot();
  let headlines=new Set();
  for(let sim=0;sim<40;sim++){
   get('profile').value=['economy','social','green','freedom'][sim%4];
