@@ -48,7 +48,7 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
   get('difficulty').value=['easy','normal','hard'][sim%3];
   api.start();api.getState().seed=sim*1901+347;
   if(sim===0){api.transactFinance('sponsor','citizens');assert.ok(api.getState().finance.sponsors.includes('citizens'));}
-  if(sim===0){assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,9,'nine clickable map regions');assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,4,'four staff character cards');}
+  if(sim===0){assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,16,'sixteen clickable voivodeships');assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,4,'four staff character cards');}
   for(let week=0;week<30;week++){
    const e=api.eventForWeek();headlines.add(e.title||e[0]);
    const opts=e.options||e[2];
@@ -62,7 +62,7 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
     for(let round=0;round<3;round++)api.decide('broadcast',sim%3);
    }
    assert.equal(api.getState().phase,1,'week '+week+' event');
-   api.decide('region',api.getState().money>=700?(sim+week)%9:9);
+   api.decide('region',api.getState().money>=700?(sim+week)%16:16);
    assert.equal(api.getState().phase,2,'week '+week+' region');
    if([2,8,16].includes(week)&&api.getState().money>=3200){
     const role=api.STAFF_ROLES.findIndex(r=>!api.getState().staff.includes(r.id));
