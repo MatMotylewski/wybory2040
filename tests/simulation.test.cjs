@@ -35,6 +35,8 @@ test('static assets and narrative library',()=>{
  assert.match(html,/id="financeDesk"/);
  assert.match(html,/id="rivalDesk"/);
  assert.match(html,/id="forecastDesk"/);
+ assert.match(html,/id="epilogue"/);
+ assert.match(html,/class="tutorial"/);
  assert.match(html,/id="difficulty"/);
  assert.equal(Object.keys(data.milestones).length,6);
 });
@@ -82,6 +84,7 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
   assert.equal(api.getState().rivalAI.pollHistory.length,29,'rival polling should update every completed week');
   assert.ok(api.getState().rivalAI.news.length>0,'rivals must take actions');
   assert.equal(api.seats().reduce((a,b)=>a+b,0),180);
+  assert.match(get('epilogue').innerHTML,/EPILOG/);
   api.coalition();
   const c=api.getState().negotiations;
   for(let i=0;i<3&&!c.done;i++){
