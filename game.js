@@ -603,7 +603,7 @@ function makeWeeklyReport(){
  const t=S.turn;if(!t||t.report)return;
  const now=national()[0],old=t.snapshot;
  const difference=now-old.poll,mandates=seats()[0]-old.seats;
- const news=(S.rivalAI?.news||[]).filter(x=>x.week===S.week).slice(0,2);
+ const news=(S.rivalAI?.news||[]).filter(x=>x.week===S.week+1).slice(0,2);
  t.report={week:S.week+1,delta:difference,mandates,spent:S.money-old.money,trust:S.trust-old.trust,news:news.map(x=>x.text),actions:[...t.done]};
 }
 function planAction(id){
