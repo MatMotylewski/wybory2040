@@ -66,3 +66,11 @@ Test automatyczny przechodzi również przez wszystkie 12 rund specjalnych w ka�
 - Rozliczenie tygodniowe obejmuje składki, biura oraz koszty specjalistów; w razie braku środków rosną zaległości zamiast blokować grę.
 
 Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z pożyczkami i wydatkami na biura. Wyniki dotyczą testów symulacyjnych, nie pełnego testu graficznego w przeglądarce.
+
+## Autonomiczna kampania rywali i barometr sondażowy
+
+- Pięć fikcyjnych konkurencyjnych partii wykonuje niezależne działania po każdym ukończonym tygodniu.
+- Ich akcje wpływają na przewagi w poszczególnych regionach i na krajowe poparcie.
+- Dostępna jest kronika ostatnich posunięć rywali oraz 12-punktowy wykres historii sondażu ugrupowania gracza.
+- Dane aktywności i sondaży są częścią ręcznego zapisu JSON.
+- Zweryfikowano 40 pełnych kampanii, w których rywale zmieniali wpływy regionalne; każdy wynik wyborów sumował się do 180 mandatów.
