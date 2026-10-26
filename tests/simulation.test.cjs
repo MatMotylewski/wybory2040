@@ -11,7 +11,7 @@ function boot(){
  const ctx={window:{WYBORY_DATA:null,scrollTo(){}},document:doc,navigator:{clipboard:{writeText:()=>Promise.resolve()}},Blob:class{},URL:{createObjectURL:()=>'',revokeObjectURL(){}},setTimeout:()=>{},alert(){},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}};
  vm.createContext(ctx);
  vm.runInContext(data,ctx,{filename:'data.js'});
- vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,eventCost,seats,national,planAction,finishTurn,manageStaff,vacateLeader,hireLeader,trainStaff,weeklyStaffCost,transactFinance,coalition,negotiate,getState:()=>S};',ctx,{filename:'game.js'});
+ vm.runInContext(game+'\nglobalThis.TEST_API={start,decide,next,render,eventForWeek,eventCost,seats,national,planAction,finishTurn,manageStaff,vacateLeader,hireLeader,trainStaff,weeklyStaffCost,characterRatings,politicianRegionalBonus,politicianEvent,schedulePoliticianCrisis,transactFinance,coalition,negotiate,getState:()=>S};',ctx,{filename:'game.js'});
  return {api:ctx.TEST_API,get,storage,library:ctx.window.WYBORY_DATA};
 }
 test('full library and newspaper interface',()=>{
@@ -71,6 +71,25 @@ test('all four vacancies can be filled and wages are recalculated',()=>{
  assert.ok(api.hireLeader('strategist','a-kuba'));
  assert.equal(api.getState().staff.length,4);
  assert.equal(api.weeklyStaffCost(),655);
+});
+test('politician traits affect field campaigns, debates and controversy stories',()=>{
+ const {api}=boot();api.start();
+ const organizer=api.getState().people.find(p=>p.id==='organizer');
+ const r=api.characterRatings(organizer);
+ let before=api.getState().regional[0];api.politicianRegionalBonus(0);
+ assert.ok(api.getState().regional[0]>before,'personal support gives regional boost');
+ assert.ok(api.getState().people.some(p=>p.popularity>0),'field work builds a politicians personal profile');
+ const press=api.getState().people.find(p=>p.id==='spokesperson');
+ const beforeRating=api.characterRatings(press).controversy;
+ press.scandal=25;
+ assert.ok(api.characterRatings(press).controversy>beforeRating,'scandal increases controversy rating');
+ api.getState().week=5;
+ api.schedulePoliticianCrisis();
+ assert.ok(api.getState().politicalCrisis,'high controversy schedules a media crisis');
+ api.getState().week=api.getState().politicalCrisis.week;
+ assert.equal(api.politicianEvent().politicalCrisis,true);
+ press.loyalty=10;
+ assert.ok(api.characterRatings(press).controversy>=beforeRating);
 });
 test('72 campaigns complete across difficulty, origins and strategy',()=>{
  let campaigns=0,topics=new Set();
