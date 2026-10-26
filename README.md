@@ -95,3 +95,9 @@ Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z po�
 ## Uporządkowanie interfejsu i województwa
 
 Widok kampanii jest podzielony na sześć zakładek: Kampania, Województwa, Sondaże, Sztab, Media oraz Finanse. Zamiast dziewięciu fikcyjnych regionów symulacja używa 16 rzeczywistych nazw województw Polski i odrębnych regionalnych modeli poparcia. Atlas jest **schematycznym układem pól**, a nie geograficzną mapą granic województw. Historia oraz partie nadal są fikcyjne. Po zmianie rozmiaru regionów przetestowano 20 pełnych kampanii. Starsze zapisy z układem 9 regionów wymagają nowej gry.
+
+## Uproszczony gameplay i zarządzanie personelem
+
+Specjalistów (maksymalnie trzech jednocześnie) zatrudnia się i zwalnia bezpośrednio w zakładce **Sztab**, niezależnie od czterech etapów tygodniowej tury. Zatrudnienie kosztuje 3200 zł, a cotygodniowe utrzymanie każdego specjalisty 170 zł. Zwolnienie jest darmowe, ale nie zwraca kosztu rekrutacji. Kierownictwo fabularne z lojalnością to oddzielny system rozmów i premii.
+
+Na ekranie **Kampania** wyświetlana jest krótka instrukcja bieżącego etapu (1/4–4/4), zamiast kolejnej długiej listy wyjaśnień. Naprawiono także awaryjny wybór wolontariuszy, gdy gracz nie może opłacić żadnej opcji wydarzenia. Po zmianach poprawnie ukończono 20 symulacji pełnej kampanii, w tym wariant startujący z zerowym budżetem.
