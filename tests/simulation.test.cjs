@@ -64,6 +64,8 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
    if(week===8)api.render(); // rehydration after a finished week must show next button
    api.next();
   }
+  assert.equal(Object.keys(api.getState().arcs||{}).length,3,'three early decisions should have long-term consequences');
+  assert.equal((api.getState().people||[]).length,4,'four story characters remain in state');
   assert.equal(api.seats().reduce((a,b)=>a+b,0),180);
   api.coalition();
   const c=api.getState().negotiations;
