@@ -91,3 +91,7 @@ Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z po�
 - **Testy:** 42 automatyczne pełne kampanie (po 14 na każdy poziom) zakończyły się poprawnie wraz z debatami, liczeniem 180 mandatów, epilogami i negocjacjami. Weryfikacja funkcjonalna nie zastępuje testów wizualnych ani pomiaru realnych 150–180 minut gry.
 
 **Stan publikacji:** kod jest na gałęzi `main`; GitHub Pages nie zostało automatycznie włączone przez narzędzia repozytorium. Aby opublikować grę, właściciel musi wejść w `Settings → Pages` i wybrać `Deploy from a branch → main → / (root)`. Nie należy uznawać gry za wydaną publicznie, dopóki adres strony nie odpowiada prawidłowo i nie zakończą się testy przeglądarkowe.
+
+## Uporządkowanie interfejsu i województwa
+
+Widok kampanii jest podzielony na sześć zakładek: Kampania, Województwa, Sondaże, Sztab, Media oraz Finanse. Zamiast dziewięciu fikcyjnych regionów symulacja używa 16 rzeczywistych nazw województw Polski i odrębnych regionalnych modeli poparcia. Atlas jest **schematycznym układem pól**, a nie geograficzną mapą granic województw. Historia oraz partie nadal są fikcyjne. Po zmianie rozmiaru regionów przetestowano 20 pełnych kampanii. Starsze zapisy z układem 9 regionów wymagają nowej gry.
