@@ -74,3 +74,11 @@ Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z po�
 - Dostępna jest kronika ostatnich posunięć rywali oraz 12-punktowy wykres historii sondażu ugrupowania gracza.
 - Dane aktywności i sondaży są częścią ręcznego zapisu JSON.
 - Zweryfikowano 40 pełnych kampanii, w których rywale zmieniali wpływy regionalne; każdy wynik wyborów sumował się do 180 mandatów.
+
+## Trudność i prognoza parlamentarna
+
+- Poziomy: Debiutant, Standard i Weteran; wpływają na siłę partii gracza oraz aktywność przeciwników.
+- W regionalnym modelu poparcia istnieje pula wyborców niezdecydowanych. Łączne wskazania dla partii mogą więc być mniejsze niż 100%.
+- Panel prognozy pokazuje mandaty, dystans do większości i regiony, w których rywalizacja jest wyrównana.
+- Powtarzanie tej samej taktyki w kolejnych tygodniach przynosi malejące korzyści.
+- Przetestowano 36 pełnych rozgrywek na trzech poziomach trudności. Średnia mandatów partii gracza w tej próbce: Debiutant 110, Standard około 79, Weteran około 49. To orientacyjny wynik określonych automatycznych strategii, nie pełny balans.
