@@ -784,7 +784,7 @@ function legacyComplete(title,result){
  ensureLegacy();
  const item=S.legacy.decisions.find(x=>x.title===title&&x.status==='pending');
  if(item){item.status='closed';item.outcome=String(result);item.resolved=S.week;
-  S.legacy.lastReminder={title,choice:item.choice,result:item.outcome,week:item.week};
+  S.legacy.lastReminder={title,choice:item.choice,result:item.outcome,week:item.week,resolvedWeek:S.week};
  }
 }
 function legacyReputation(kind){
@@ -849,7 +849,7 @@ decide=function(kind,index){
    legacyReputation(index);
   }
  }
- return MEMORY_DECIDE(kind,index);
+ const result=MEMORY_DECIDE(kind,index);if(S)legacyView();return result;
 };
 const MEMORY_ACTION=planAction;
 planAction=function(id){
@@ -860,7 +860,7 @@ planAction=function(id){
   legacyRecord('Działanie sztabu',labels[id]||id,{kind:'action'});
   if(['field','volunteers'].includes(id)){ensureLegacy();S.legacy.reputation.field++;}
   if(['diplomacy','research'].includes(id))legacyReputation(id==='research'?0:1);
-  saveAutomatically();
+  legacyView();saveAutomatically();
  }
 };
 const MEMORY_NEXT=next;
@@ -875,7 +875,7 @@ render=function(){
  if(!S)return;
  ensureLegacy();legacyView();
  const notice=$('politicalReminder'),r=S.legacy.lastReminder;
- if(notice){notice.innerHTML=r&&r.week<S.week?'<div class="legacy-notice"><strong>POWRÓT SPRAWY SPRZED '+(S.week-r.week)+' TYGODNI</strong><p>'+esc(r.title)+': '+esc(r.choice)+'</p><p>'+esc(r.result)+'</p></div>':'';}
+ if(notice){notice.innerHTML=r&&r.resolvedWeek===S.week?'<div class="legacy-notice"><strong>POWRÓT SPRAWY SPRZED '+(S.week-r.week)+' TYGODNI</strong><p>'+esc(r.title)+': '+esc(r.choice)+'</p><p>'+esc(r.result)+'</p></div>':'';}
 };
 const MEMORY_EPILOGUE=renderEpilogue;
 renderEpilogue=function(){MEMORY_EPILOGUE();if($('epilogue')&&S){ensureLegacy();$('epilogue').innerHTML+='<p class="frame"><strong>Twój styl polityczny:</strong> '+esc(reputationLabel())+'.</p>';}}
