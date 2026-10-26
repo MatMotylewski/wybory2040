@@ -135,6 +135,74 @@ function characterCards(){
  S.people.map(p=>'<div class="group"><span>'+esc(p.name)+' · '+esc(p.role)+'</span><b>'+(p.active?p.loyalty+'/100':'ODSZEDŁ')+'</b></div>').join('')+'</div>';
 }
 
+
+const ATLAS_SHAPES=[
+'245,48 336,51 350,126 301,158 229,123',
+'352,54 468,50 508,117 451,162 351,130',
+'475,58 563,86 592,169 503,198 452,163 510,121',
+'119,175 207,121 296,162 278,243 188,265 112,228',
+'284,247 355,199 451,164 484,250 405,303 317,290',
+'489,255 540,208 602,216 581,327 505,352 408,306',
+'34,237 108,234 185,268 184,348 93,362 43,313',
+'160,56 238,48 222,125 117,173 64,146 89,79',
+'191,350 285,293 407,309 439,386 326,412 215,393'
+];
+const ATLAS_CENTERS=[[286,100],[424,112],[536,137],[197,210],[378,251],[523,289],[106,298],[151,110],[312,356]];
+let atlasSelected=0,staffMode=false;
+function renderAtlas(){
+ const svg=$('electionAtlas');if(!svg||!S)return;
+ const canChoose=S.phase===1&&!S.done;
+ svg.innerHTML=ATLAS_SHAPES.map((shape,i)=>{
+  const p=pollRegion(i)[0],pos=ATLAS_CENTERS[i],selected=atlasSelected===i;
+  return '<g role="button" tabindex="0" aria-label="'+esc(REGIONS[i].name)+', '+p.toFixed(1)+' procent poparcia" data-atlas-region="'+i+'">'+
+  '<polygon class="territory '+(selected?'active':'')+'" points="'+shape+'"></polygon>'+
+  '<text class="region-label" x="'+pos[0]+'" y="'+pos[1]+'">'+esc(REGIONS[i].name)+'</text>'+
+  '<text class="region-pct" x="'+pos[0]+'" y="'+(pos[1]+17)+'">'+p.toFixed(1)+'%</text></g>';
+ }).join('');
+ const r=REGIONS[atlasSelected],votes=pollRegion(atlasSelected);
+ const seatsEstimate=Math.max(1,Math.round(180*r.population/REGIONS.reduce((n,v)=>n+v.population,0)));
+ $('atlasDetail').innerHTML='<strong>'+esc(r.name)+'</strong> · '+votes[0].toFixed(1)+'% Twojego poparcia · ok. '+seatsEstimate+' mandatów'+
+ (canChoose?' <button class="btn alt" data-atlas-visit="'+atlasSelected+'" '+(S.money<700?'disabled':'')+'>Wyślij sztab (700 zł)</button>':' · Wybierz region na mapie');
+}
+function renderStaffDesk(){
+ const target=$('staffDesk');if(!target||!S)return;ensureNarrative();
+ const active=S.people.filter(p=>p.active);
+ target.innerHTML='<h3 class="section-title">Gabinet kierownictwa</h3><p class="small">Rozmowy i podział obowiązków są osobną czynnością, nie zużywają tury. Każdy współpracownik może odbyć jedną rozmowę co 4 tygodnie.</p>'+
+ active.map(p=>{
+  const last=(S.staffTalks||{})[p.id],cooldown=Number.isInteger(last)&&S.week-last<4;
+  return '<div class="staff-person"><strong>'+esc(p.name)+'</strong><small>'+esc(p.role)+' · lojalność '+p.loyalty+'/100</small>'+
+   '<div class="loyalty-track"><div class="loyalty-fill" style="width:'+p.loyalty+'%"></div></div>'+
+   '<div class="staff-controls"><button data-staff-talk="'+p.id+'" '+(cooldown?'disabled':'')+'>Porozmawiaj (−400 zł)</button>'+
+   '<button data-staff-bonus="'+p.id+'" '+(cooldown||S.money<1800?'disabled':'')+'>Premia (−1800 zł)</button></div></div>';
+ }).join('')+
+ (S.people.some(p=>!p.active)?'<p class="small">Ze sztabu odeszli: '+S.people.filter(p=>!p.active).map(p=>esc(p.name)).join(', ')+'</p>':'');
+}
+function staffConversation(id,bonus){
+ if(!S||S.done&&S.week===29)return;ensureNarrative();
+ const p=S.people.find(p=>p.id===id&&p.active);if(!p)return;
+ if(!S.staffTalks)S.staffTalks={};
+ const last=S.staffTalks[id];if(Number.isInteger(last)&&S.week-last<4)return;
+ const cost=bonus?1800:400;if(S.money<cost)return;
+ S.money-=cost;S.staffTalks[id]=S.week;p.loyalty=clamp(p.loyalty+(bonus?18:9),0,100);
+ if(!bonus)S.trust=clamp(S.trust+1,0,100);
+ log('Rozmowa ze sztabem: '+p.name+(bonus?' otrzymuje premię.': ' pozostaje w zespole.'));
+ render();
+}
+document.addEventListener('click',e=>{
+ const g=e.target.closest('[data-atlas-region]');
+ if(g&&S){atlasSelected=Number(g.dataset.atlasRegion);renderAtlas();return;}
+ const visit=e.target.closest('[data-atlas-visit]');
+ if(visit&&S&&S.phase===1&&!S.done&&S.money>=700){decide('region',Number(visit.dataset.atlasVisit));return;}
+ const talk=e.target.closest('[data-staff-talk]');
+ if(talk&&S){staffConversation(talk.dataset.staffTalk,false);return;}
+ const bonus=e.target.closest('[data-staff-bonus]');
+ if(bonus&&S){staffConversation(bonus.dataset.staffBonus,true);return;}
+});
+document.addEventListener('keydown',e=>{
+ const node=e.target.closest('[data-atlas-region]');
+ if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();atlasSelected=Number(node.dataset.atlasRegion);renderAtlas();}
+});
+
 let S=null;
 function safeNum(n){return Math.round(n).toLocaleString('pl-PL')}
 function rand(){S.seed=(Math.imul(S.seed,1664525)+1013904223)>>>0;return S.seed/4294967296}
@@ -150,7 +218,7 @@ function log(text){S.history.unshift('TYDZIEŃ '+(S.week+1)+': '+text);if(S.hist
 function start(){const bases={economy:[16,24,17,15],social:[17,16,22,24],green:[24,17,17,15],freedom:[25,22,15,12]};S={name:$('partyName').value.trim().replace(/\s+/g,' ').slice(0,32)||'Nowy Kierunek',groups:[...bases[$('profile').value]],regional:Array(9).fill(0),money:22000,trust:55,week:0,phase:0,seed:(Math.random()*2**32)>>>0,history:[],staff:[],diplomacy:0,arcs:{},people:CHARACTERS.map(x=>({...x,active:true})),used:[],selectedRegion:0,coalition:[],done:false};show('game');render()}
 function eventCost(o){return typeof o[1]==='object'&&!Array.isArray(o[1])?Math.max(0,-(o[1].budget||0)):o[3]}
 function eventForWeek(){const narrative=storyForWeek();if(narrative)return narrative;const data=window.WYBORY_DATA;if(data?.milestones?.[S.week])return data.milestones[S.week];const p=data?.pool;if(p?.length){return p[((S.seed>>>0)+S.week*17)%p.length]}return EVENT_POOL[S.week%EVENT_POOL.length]}
-function render(){if(!S)return;const n=national();$('weekLabel').textContent='TYDZIEŃ '+(S.week+1)+' / 30 · '+CHAPTERS[Math.min(5,Math.floor(S.week/5))];$('campaignTitle').textContent=S.name;$('support').textContent=n[0].toFixed(1)+'%';$('money').textContent=safeNum(S.money)+' zł';$('trust').textContent=S.trust+'/100';$('left').textContent=(30-S.week)+' tyg.';if($('characterRoster'))$('characterRoster').innerHTML=characterCards();if($('weekProgress'))$('weekProgress').style.width=(((S.week+1)/30)*100).toFixed(2)+'%';$('phase').textContent=['ETAP I · DEPESZA REDAKCYJNA','ETAP II · REGIONY','ETAP III · SZTAB','ETAP IV · PLAN STRATEGICZNY'][S.phase];$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('history').innerHTML=S.history.slice(0,12).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>Sztab rozpoczyna pracę.</li>';$('poll').innerHTML=n.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v.toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+v.toFixed(1)+'%"></div></div></div>').join('');$('groups').innerHTML=REGIONS.map((r,i)=>'<div class="group"><span>'+esc(r.name)+'</span><b>'+pollRegion(i)[0].toFixed(1)+'%</b></div>').join('');$('groups').innerHTML+='<div class="paper-banner">MAPA POPARCIA • 9 REGIONÓW</div><div class="map-tiles">'+REGIONS.map((r,i)=>'<div class="map-tile"><strong>'+esc(r.name)+'</strong><span>'+pollRegion(i)[0].toFixed(1)+'% · '+Math.round(180*r.population/REGIONS.reduce((n,x)=>n+x.population,0))+' mand.</span></div>').join('')+'</div>';if(S.phase===0){let e=eventForWeek();$('eventTitle').textContent=e.title||e[0];$('eventText').textContent=e.body||e[1];const opts=e.options||e[2];$('choices').innerHTML=opts.map((o,i)=>'<button class="option" data-kind="event" data-i="'+i+'" '+(eventCost(o)>S.money?'disabled':'')+'><strong>'+esc(o[0])+'</strong><small>Koszt: '+safeNum(eventCost(o))+' zł</small></button>').join('')+(opts.every(o=>eventCost(o)>S.money)?'<button class="option" data-kind="event" data-i="99"><strong>Awaryjny dyżur wolontariuszy</strong><small>Bez kosztów</small></button>':'')}else if(S.phase===1){$('eventTitle').textContent='Gdzie wysłać działaczy?';$('eventText').textContent='Wybierz region, w którym odbędzie się spotkanie. Każdy region ma inną wagę w wyborach.';$('choices').innerHTML=REGIONS.map((r,i)=>'<button class="option" data-kind="region" data-i="'+i+'" '+(S.money<700?'disabled':'')+'><strong>'+esc(r.name)+'</strong><small>Poparcie: '+pollRegion(i)[0].toFixed(1)+'% · Koszt: 700 zł</small></button>').join('')+(S.money<700?'<button class="option" data-kind="region" data-i="9"><strong>Bez wyjazdu</strong><small>Brak środków na podróż</small></button>':'')}else if(S.phase===2){$('eventTitle').textContent='Decyzja sztabu';$('eventText').textContent='Wybierz jedno działanie ogólnokrajowe. Możesz też zbierać fundusze.';$('choices').innerHTML=ACTIONS.map((a,i)=>'<button class="option" data-kind="action" data-i="'+i+'" '+(S.money<a[1]?'disabled':'')+'><strong>'+esc(a[0])+'</strong><small>'+esc(a[4])+' · '+(a[1]<0?'+':'−')+safeNum(Math.abs(a[1]))+' zł</small></button>').join('')}if(S.phase===2&&S.staff.length<3){
+function render(){if(!S)return;const n=national();$('weekLabel').textContent='TYDZIEŃ '+(S.week+1)+' / 30 · '+CHAPTERS[Math.min(5,Math.floor(S.week/5))];$('campaignTitle').textContent=S.name;$('support').textContent=n[0].toFixed(1)+'%';$('money').textContent=safeNum(S.money)+' zł';$('trust').textContent=S.trust+'/100';$('left').textContent=(30-S.week)+' tyg.';if($('characterRoster'))$('characterRoster').innerHTML=characterCards();renderStaffDesk();renderAtlas();if($('weekProgress'))$('weekProgress').style.width=(((S.week+1)/30)*100).toFixed(2)+'%';$('phase').textContent=['ETAP I · DEPESZA REDAKCYJNA','ETAP II · REGIONY','ETAP III · SZTAB','ETAP IV · PLAN STRATEGICZNY'][S.phase];$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('history').innerHTML=S.history.slice(0,12).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>Sztab rozpoczyna pracę.</li>';$('poll').innerHTML=n.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v.toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+v.toFixed(1)+'%"></div></div></div>').join('');$('groups').innerHTML=REGIONS.map((r,i)=>'<div class="group"><span>'+esc(r.name)+'</span><b>'+pollRegion(i)[0].toFixed(1)+'%</b></div>').join('');$('groups').innerHTML+='<div class="paper-banner">MAPA POPARCIA • 9 REGIONÓW</div><div class="map-tiles">'+REGIONS.map((r,i)=>'<div class="map-tile"><strong>'+esc(r.name)+'</strong><span>'+pollRegion(i)[0].toFixed(1)+'% · '+Math.round(180*r.population/REGIONS.reduce((n,x)=>n+x.population,0))+' mand.</span></div>').join('')+'</div>';if(S.phase===0){let e=eventForWeek();$('eventTitle').textContent=e.title||e[0];$('eventText').textContent=e.body||e[1];const opts=e.options||e[2];$('choices').innerHTML=opts.map((o,i)=>'<button class="option" data-kind="event" data-i="'+i+'" '+(eventCost(o)>S.money?'disabled':'')+'><strong>'+esc(o[0])+'</strong><small>Koszt: '+safeNum(eventCost(o))+' zł</small></button>').join('')+(opts.every(o=>eventCost(o)>S.money)?'<button class="option" data-kind="event" data-i="99"><strong>Awaryjny dyżur wolontariuszy</strong><small>Bez kosztów</small></button>':'')}else if(S.phase===1){$('eventTitle').textContent='Gdzie wysłać działaczy?';$('eventText').textContent='Wybierz region, w którym odbędzie się spotkanie. Każdy region ma inną wagę w wyborach.';$('choices').innerHTML=REGIONS.map((r,i)=>'<button class="option" data-kind="region" data-i="'+i+'" '+(S.money<700?'disabled':'')+'><strong>'+esc(r.name)+'</strong><small>Poparcie: '+pollRegion(i)[0].toFixed(1)+'% · Koszt: 700 zł</small></button>').join('')+(S.money<700?'<button class="option" data-kind="region" data-i="9"><strong>Bez wyjazdu</strong><small>Brak środków na podróż</small></button>':'')}else if(S.phase===2){$('eventTitle').textContent='Decyzja sztabu';$('eventText').textContent='Wybierz jedno działanie ogólnokrajowe. Możesz też zbierać fundusze.';$('choices').innerHTML=ACTIONS.map((a,i)=>'<button class="option" data-kind="action" data-i="'+i+'" '+(S.money<a[1]?'disabled':'')+'><strong>'+esc(a[0])+'</strong><small>'+esc(a[4])+' · '+(a[1]<0?'+':'−')+safeNum(Math.abs(a[1]))+' zł</small></button>').join('')}if(S.phase===2&&S.staff.length<3){
  $('choices').innerHTML+='<h3 class="section-title">Zatrudnij eksperta zamiast reklamy</h3>'+
  STAFF_ROLES.map((a,i)=>S.staff.includes(a.id)?'':'<button class="option" data-kind="hire" data-i="'+i+'" '+(S.money<3200?'disabled':'')+'><strong>'+esc(a.name)+'</strong><small>'+esc(a.desc)+' · jednorazowo 3 200 zł</small></button>').join('');
 }if(S.phase===3){
