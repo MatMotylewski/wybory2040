@@ -692,3 +692,38 @@ $('resumeAuto')?.addEventListener('click',async()=>{
  catch(e){$('saveInfo').textContent='Nie udało się odczytać zapisu: '+e.message;}
 });
 refreshAutoResume();
+
+
+const RESULT_FINISH=finish;
+finish=function(){
+ RESULT_FINISH();
+ if(!$('electionNight')||!S)return;
+ S.nightRound=0;
+ $('end').classList.add('election-pending');
+ $('electionNight').classList.remove('hidden');
+ $('nightTitle').textContent='Zamknięto lokale wyborcze';
+ $('nightText').textContent='Trwają pierwsze odczyty. Otwórz kolejne depesze, aby poznać wynik.';
+ $('nightNext').textContent='Otwórz pierwszą depeszę';
+ saveAutomatically();
+};
+$('nightNext')?.addEventListener('click',()=>{
+ if(!S)return;
+ S.nightRound=(S.nightRound||0)+1;
+ const n=national(),places=seats(),lead=n.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v);
+ if(S.nightRound===1){
+ $('nightTitle').textContent='PILNE: pierwsze szacunki wyborcze';
+ $('nightText').textContent='Największym poparciem cieszy się '+names()[lead[0].i]+'. Sztaby oczekują na podział mandatów.';
+ $('nightNext').textContent='Otwórz drugą depeszę';
+ }else if(S.nightRound===2){
+ const t=places[0]>=91?'Samodzielna większość jest w zasięgu.':places[0]>0?'Rozmowy koalicyjne mogą przesądzić o przyszłym rządzie.':'Komitet nie przekroczył progu pozwalającego uzyskać mandaty.';
+ $('nightTitle').textContent='PILNE: spływają protokoły';
+ $('nightText').textContent=t+' Liczenie głosów dobiega końca.';
+ $('nightNext').textContent='Ogłoś oficjalne wyniki';
+ }else{
+ $('nightTitle').textContent='WYNIKI ZATWIERDZONE';
+ $('nightText').textContent='Komisja ogłosiła ostateczny podział wszystkich 180 mandatów.';
+ $('end').classList.remove('election-pending');
+ $('nightNext').classList.add('hidden');
+ }
+ saveAutomatically();
+});
