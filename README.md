@@ -1,27 +1,32 @@
 # WYBORY2040 — Dziennik Wyborczy
 
-Satyryczny symulator kampanii wyborczej w fikcyjnej Republice Nowin, inspirowany estetyką starej prasy i druków z czasów PRL.
+Grywalny, statyczny symulator kampanii wyborczej w fikcyjnej Republice Nowin, utrzymany w klimacie dawnej gazety.
 
-## Gra
-- 10 tygodni kampanii; w każdym tygodniu decyzja fabularna i akcja sztabu.
-- Własna nazwa partii i wybór programu.
-- Zarządzanie budżetem, wiarygodnością i poparciem.
-- Dynamiczne sondaże, cztery grupy wyborców i trzech konkurentów.
-- Wieczór wyborczy, ranking i wynik do skopiowania.
-- Projekt responsywny na telefonie i komputerze.
+## Zaimplementowano — etap II
+- **30 tygodni** kampanii, podzielonych na sześć rozdziałów.
+- **30 różnych wydarzeń fabularnych**, każde z trzema reakcjami.
+- **Trzy decyzje tygodniowo**: reakcja na wydarzenie, wybór regionu, akcja sztabu.
+- **9 regionów** o odmiennej strukturze elektoratu i wadze ludności.
+- **5 fikcyjnych partii rywalizujących** z komitetem gracza.
+- Budżet kampanii, zbiórki, składki, wiarygodność, struktury regionalne i sondaże.
+- **180 mandatów** rozdzielanych regionalnie metodą d'Hondta (próg 5% w modelu regionu).
+- Wstępny ekran **arytmetyki koalicyjnej** i sprawdzanie większości 91 mandatów.
+- Responsywny wygląd gazety w stylistyce PRL.
+- Bez logowania i backendu; stan rozgrywki tylko w pamięci strony.
+
+## Status i ograniczenia
+To rozszerzona, grywalna wersja rozwojowa, a nie jeszcze pełne zaplanowane 2–3 godziny. Obecnie pula to **30**, nie 130+ wydarzeń. Rozmowy koalicyjne mają na razie arytmetykę mandatów — bez warunków programowych. Nie ma jeszcze zapisu/odczytu stanu z pliku, rozbudowanych relacji z członkami sztabu, konsekwencji odroczonych, wydarzeń losowych ani końcowych epilogów. Długość gry nie została zmierzona z udziałem graczy.
 
 ## Uruchomienie
-Otwórz `index.html` w przeglądarce. Nie wymaga instalowania zależności.
+Otwórz `index.html` w przeglądarce, w tym samym katalogu musi znajdować się `game.js`. Wymagane są tylko te dwa pliki.
 
-## Publikacja na GitHub Pages
-Repozytorium: https://github.com/MatMotylewski/wybory2040
-
-1. Otwórz **Settings → Pages**.
-2. Wybierz **Deploy from a branch**.
-3. Wybierz **main** oraz **/ (root)** i kliknij **Save**.
-4. Adres po uruchomieniu Pages: https://matmotylewski.github.io/wybory2040/
+## Publikacja na GitHub Pages — później
+1. Otwórz https://github.com/MatMotylewski/wybory2040/settings/pages
+2. Source: **Deploy from a branch**.
+3. Branch: **main**, folder: **/ (root)**, przycisk **Save**.
+4. Po publikacji: https://matmotylewski.github.io/wybory2040/
 
 ## Prywatność
-Aplikacja jest statyczna i nie ma backendu, kont, własnych cookies, lokalnego zapisu postępów ani analityki. Gra nie wysyła stanu kampanii na serwer. Jedynym zasobem zewnętrznym są opcjonalnie pobierane fonty Google Fonts — można je usunąć, aby nie było zewnętrznych żądań ze strony gry.
+Nie ma kont, własnych cookies, bazy danych ani localStorage. Brak telemetrii i zapisu postępów na serwerze. Strona ładuje fonty z Google Fonts, co powoduje dodatkowe zapytanie do zewnętrznego serwisu. GitHub Pages może prowadzić standardowe logi hostingu.
 
-Gra jest fikcyjna i nie jest związana z rzeczywistymi partiami ani sondażami.
+Wszystkie partie i regiony są fikcyjne. Symulacja nie przedstawia prawdziwych sondaży.
