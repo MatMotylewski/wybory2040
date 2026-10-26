@@ -333,7 +333,7 @@ function ensureRivals(){
 function runRivals(){
  const ai=ensureRivals();if(ai.lastWeek===S.week)return;
  for(let j=0;j<5;j++){
-  const index=Math.floor(rand()*9),tactic=RIVAL_TACTICS[Math.floor(rand()*RIVAL_TACTICS.length)];
+  const index=Math.floor(rand()*REGIONS.length),tactic=RIVAL_TACTICS[Math.floor(rand()*RIVAL_TACTICS.length)];
   const strength=(.68+rand()*.5)*level().rival;
   ai.regional[j][index]=clamp(ai.regional[j][index]+tactic.delta*strength,-5,15);
   ai.global[j]=clamp(ai.global[j]+tactic.global*strength-.07,-6,8);
@@ -459,15 +459,15 @@ function seats(){let sum=Array(6).fill(0);const eligible=national().map(v=>v>=5)
 function show(id){['setup','game','end','coalition'].forEach(k=>$(k).classList.toggle('hidden',k!==id));window.scrollTo(0,0)}
 function apply(d,t,c,region){const factor=.85+S.trust/300;S.groups=S.groups.map((v,i)=>clamp(v+d[i]*factor,3,70));S.trust=clamp(S.trust+t,0,100);S.money-=c;if(region!==undefined)S.regional[region]=clamp(S.regional[region]+1.7+(S.staff?.includes('field')?.8:0),0,30)}
 function log(text){S.history.unshift('TYDZIEŃ '+(S.week+1)+': '+text);if(S.history.length>90)S.history.length=90}
-function start(){const bases={economy:[16,24,17,15],social:[17,16,22,24],green:[24,17,17,15],freedom:[25,22,15,12]};S={candidate:{name:($('candidateName')?.value||'Jan Kowalski').trim().replace(/\s+/g,' ').slice(0,42)||'Jan Kowalski',gender:candidateSelection.gender,portrait:candidateSelection.portrait},name:$('partyName').value.trim().replace(/\s+/g,' ').slice(0,32)||'Nowy Kierunek',groups:[...bases[$('profile').value]],regional:Array(REGIONS.length).fill(0),difficulty:DIFFICULTY[$('difficulty')?.value]?$('difficulty').value:'normal',money:22000,trust:55,week:0,phase:0,seed:(Math.random()*2**32)>>>0,history:[],staff:[],recentTactics:[],diplomacy:0,arcs:{},people:CHARACTERS.map(x=>({...x,active:true})),used:[],selectedRegion:0,coalition:[],rivalAI:{regional:Array.from({length:5},()=>Array(REGIONS.length).fill(0)),global:Array(5).fill(0),lastWeek:-1,news:[],pollHistory:[]},finance:{offices:Array(REGIONS.length).fill(0),sponsors:[],debt:0,arrears:0,crisis:0,lastWeek:-1,monthly:[],usedSponsorWeeks:[]},done:false};show('game');window.openGameTab?.('campaign');render()}
+function start(){const bases={economy:[16,24,17,15],social:[17,16,22,24],green:[24,17,17,15],freedom:[25,22,15,12]};S={profile:$('profile').value, candidate:{name:($('candidateName')?.value||'Jan Kowalski').trim().replace(/\s+/g,' ').slice(0,42)||'Jan Kowalski',gender:candidateSelection.gender,portrait:candidateSelection.portrait},name:$('partyName').value.trim().replace(/\s+/g,' ').slice(0,32)||'Nowy Kierunek',groups:[...bases[$('profile').value]],regional:Array(REGIONS.length).fill(0),difficulty:DIFFICULTY[$('difficulty')?.value]?$('difficulty').value:'normal',money:22000,trust:55,week:0,phase:0,seed:(Math.random()*2**32)>>>0,history:[],staff:[],recentTactics:[],diplomacy:0,arcs:{},people:CHARACTERS.map(x=>({...x,active:true})),used:[],selectedRegion:0,coalition:[],rivalAI:{regional:Array.from({length:5},()=>Array(REGIONS.length).fill(0)),global:Array(5).fill(0),lastWeek:-1,news:[],pollHistory:[]},finance:{offices:Array(REGIONS.length).fill(0),sponsors:[],debt:0,arrears:0,crisis:0,lastWeek:-1,monthly:[],usedSponsorWeeks:[]},done:false};show('game');window.openGameTab?.('campaign');render()}
 function eventCost(o){return typeof o[1]==='object'&&!Array.isArray(o[1])?Math.max(0,-(o[1].budget||0)):o[3]}
 function eventForWeek(){const narrative=storyForWeek();if(narrative)return narrative;const data=window.WYBORY_DATA;if(data?.milestones?.[S.week])return data.milestones[S.week];const p=data?.pool;if(p?.length){return p[((S.seed>>>0)+S.week*17)%p.length]}return EVENT_POOL[S.week%EVENT_POOL.length]}
-function render(){if(!S)return;renderCandidate();const n=national();$('weekLabel').textContent='TYDZIEŃ '+(S.week+1)+' / 30 · '+CHAPTERS[Math.min(5,Math.floor(S.week/5))];$('campaignTitle').textContent=S.name;$('support').textContent=n[0].toFixed(1)+'%';$('money').textContent=safeNum(S.money)+' zł';$('trust').textContent=S.trust+'/100';$('left').textContent=(30-S.week)+' tyg.';if($('characterRoster'))$('characterRoster').innerHTML=characterCards();renderStaffDesk();renderAtlas();if($('rivalDesk'))$('rivalDesk').innerHTML=rivalPanel();if($('forecastDesk'))$('forecastDesk').innerHTML=forecastPanel();if($('financeDesk'))$('financeDesk').innerHTML=financePanel();if($('stepHint'))$('stepHint').textContent=S.done?'Wszystkie decyzje podjęte. Przejdź do kolejnego tygodnia.':(['1/4 · Przeczytaj depeszę i wybierz odpowiedź.','2/4 · Wybierz województwo na kampanię albo zrezygnuj z wyjazdu.','3/4 · Wybierz jedno działanie ogólnopolskie. Specjalistów zatrudnisz osobno w zakładce Sztab.','4/4 · Wybierz taktykę na koniec tygodnia.','Debata · Odpowiedz na kolejne pytanie.'][S.phase]||'');if($('weekProgress'))$('weekProgress').style.width=(((S.week+1)/30)*100).toFixed(2)+'%';$('phase').textContent=['ETAP I · DEPESZA REDAKCYJNA','ETAP II · REGIONY','ETAP III · SZTAB','ETAP IV · PLAN STRATEGICZNY'][S.phase];$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('history').innerHTML=S.history.slice(0,12).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>Sztab rozpoczyna pracę.</li>';$('poll').innerHTML=n.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v.toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+v.toFixed(1)+'%"></div></div></div>').join('');$('groups').innerHTML=REGIONS.map((r,i)=>'<div class="group"><span>'+esc(r.name)+'</span><b>'+pollRegion(i)[0].toFixed(1)+'%</b></div>').join('');$('groups').innerHTML+='<div class="paper-banner">MAPA POPARCIA • 9 REGIONÓW</div><div class="map-tiles">'+REGIONS.map((r,i)=>'<div class="map-tile"><strong>'+esc(r.name)+'</strong><span>'+pollRegion(i)[0].toFixed(1)+'% · '+Math.round(180*r.population/REGIONS.reduce((n,x)=>n+x.population,0))+' mand.</span></div>').join('')+'</div>';if(S.phase===0){let e=eventForWeek();$('eventTitle').textContent=e.title||e[0];$('eventText').textContent=e.body||e[1];const opts=e.options||e[2];$('choices').innerHTML=opts.map((o,i)=>'<button class="option" data-kind="event" data-i="'+i+'" '+(eventCost(o)>S.money?'disabled':'')+'><strong>'+esc(o[0])+'</strong><small>Koszt: '+safeNum(eventCost(o))+' zł</small></button>').join('')+(opts.every(o=>eventCost(o)>S.money)?'<button class="option" data-kind="event" data-i="99"><strong>Awaryjny dyżur wolontariuszy</strong><small>Bez kosztów</small></button>':'')}else if(S.phase===1){$('eventTitle').textContent='Gdzie wysłać działaczy?';$('eventText').textContent='Wybierz region, w którym odbędzie się spotkanie. Każdy region ma inną wagę w wyborach.';$('choices').innerHTML=REGIONS.map((r,i)=>'<button class="option" data-kind="region" data-i="'+i+'" '+(S.money<700?'disabled':'')+'><strong>'+esc(r.name)+'</strong><small>Poparcie: '+pollRegion(i)[0].toFixed(1)+'% · Koszt: 700 zł</small></button>').join('')+(S.money<700?'<button class="option" data-kind="region" data-i="'+REGIONS.length+'"><strong>Bez wyjazdu</strong><small>Przejdź dalej bez kosztów podróży</small></button>':'')}else if(S.phase===2){$('eventTitle').textContent='Decyzja sztabu';$('eventText').textContent='Wybierz jedno działanie ogólnokrajowe. Możesz też zbierać fundusze.';$('choices').innerHTML=ACTIONS.map((a,i)=>'<button class="option" data-kind="action" data-i="'+i+'" '+(S.money<a[1]?'disabled':'')+'><strong>'+esc(a[0])+'</strong><small>'+esc(a[4])+' · '+(a[1]<0?'+':'−')+safeNum(Math.abs(a[1]))+' zł</small></button>').join('')}if(S.phase===3){
+function render(){if(!S)return;renderCandidate();const n=national();$('weekLabel').textContent='TYDZIEŃ '+(S.week+1)+' / 30 · '+CHAPTERS[Math.min(5,Math.floor(S.week/5))];$('campaignTitle').textContent=S.name;$('support').textContent=n[0].toFixed(1)+'%';$('money').textContent=safeNum(S.money)+' zł';$('trust').textContent=S.trust+'/100';$('left').textContent=(30-S.week)+' tyg.';if($('characterRoster'))$('characterRoster').innerHTML=characterCards();renderStaffDesk();renderAtlas();if($('rivalDesk'))$('rivalDesk').innerHTML=rivalPanel();if($('forecastDesk'))$('forecastDesk').innerHTML=forecastPanel();if($('financeDesk'))$('financeDesk').innerHTML=financePanel();if($('stepHint'))$('stepHint').textContent=S.done?'Wszystkie decyzje podjęte. Przejdź do kolejnego tygodnia.':(['1/4 · Przeczytaj depeszę i wybierz odpowiedź.','2/4 · Wybierz województwo na kampanię albo zrezygnuj z wyjazdu.','3/4 · Wybierz jedno działanie ogólnopolskie. Specjalistów zatrudnisz osobno w zakładce Sztab.','4/4 · Wybierz taktykę na koniec tygodnia.','Debata · Odpowiedz na kolejne pytanie.'][S.phase]||'');if($('weekProgress'))$('weekProgress').style.width=(((S.week+1)/30)*100).toFixed(2)+'%';$('phase').textContent=['ETAP I · DEPESZA REDAKCYJNA','ETAP II · REGIONY','ETAP III · SZTAB','ETAP IV · PLAN STRATEGICZNY'][S.phase];$('feedback').classList.add('hidden');$('next').classList.add('hidden');$('history').innerHTML=S.history.slice(0,12).map(x=>'<li>'+esc(x)+'</li>').join('')||'<li>Sztab rozpoczyna pracę.</li>';$('poll').innerHTML=n.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v.toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+v.toFixed(1)+'%"></div></div></div>').join('');$('groups').innerHTML=REGIONS.map((r,i)=>'<div class="group"><span>'+esc(r.name)+'</span><b>'+pollRegion(i)[0].toFixed(1)+'%</b></div>').join('');$('groups').innerHTML+='<div class="paper-banner">MAPA POPARCIA • 16 WOJEWÓDZTW</div><div class="map-tiles">'+REGIONS.map((r,i)=>'<div class="map-tile"><strong>'+esc(r.name)+'</strong><span>'+pollRegion(i)[0].toFixed(1)+'% · '+Math.round(180*r.population/REGIONS.reduce((n,x)=>n+x.population,0))+' mand.</span></div>').join('')+'</div>';if(S.phase===0){let e=eventForWeek();$('eventTitle').textContent=e.title||e[0];$('eventText').textContent=e.body||e[1];const opts=e.options||e[2];$('choices').innerHTML=opts.map((o,i)=>'<button class="option" data-kind="event" data-i="'+i+'" '+(eventCost(o)>S.money?'disabled':'')+'><strong>'+esc(o[0])+'</strong><small>Koszt: '+safeNum(eventCost(o))+' zł</small></button>').join('')+(opts.every(o=>eventCost(o)>S.money)?'<button class="option" data-kind="event" data-i="99"><strong>Awaryjny dyżur wolontariuszy</strong><small>Bez kosztów</small></button>':'')}else if(S.phase===1){$('eventTitle').textContent='Gdzie wysłać działaczy?';$('eventText').textContent='Wybierz region, w którym odbędzie się spotkanie. Każdy region ma inną wagę w wyborach.';$('choices').innerHTML=REGIONS.map((r,i)=>'<button class="option" data-kind="region" data-i="'+i+'" '+(S.money<700?'disabled':'')+'><strong>'+esc(r.name)+'</strong><small>Poparcie: '+pollRegion(i)[0].toFixed(1)+'% · Koszt: 700 zł</small></button>').join('')+(S.money<700?'<button class="option" data-kind="region" data-i="'+REGIONS.length+'"><strong>Bez wyjazdu</strong><small>Przejdź dalej bez kosztów podróży</small></button>':'')}else if(S.phase===2){$('eventTitle').textContent='Decyzja sztabu';$('eventText').textContent='Wybierz jedno działanie ogólnokrajowe. Możesz też zbierać fundusze.';$('choices').innerHTML=ACTIONS.map((a,i)=>'<button class="option" data-kind="action" data-i="'+i+'" '+(S.money<a[1]?'disabled':'')+'><strong>'+esc(a[0])+'</strong><small>'+esc(a[4])+' · '+(a[1]<0?'+':'−')+safeNum(Math.abs(a[1]))+' zł</small></button>').join('')}if(S.phase===3){
  $('eventTitle').textContent='Plan na nadchodzące dni';$('eventText').textContent='Podejmij jedną dodatkową decyzję strategiczną. Jej konsekwencje mogą wpłynąć na regiony, budżet lub przyszłą koalicję.';
  $('choices').innerHTML=TACTICS.map((a,i)=>'<button class="option" data-kind="tactic" data-i="'+i+'" '+(S.money<a.cost?'disabled':'')+'><strong>'+esc(a.name)+'</strong><small>'+esc(a.desc)+' · koszt: '+safeNum(a.cost)+' zł</small></button>').join('');
 }if(S.phase===4)renderBroadcast();if(S.done){$('choices').innerHTML='';$('eventTitle').textContent='Numer tygodnia zamknięty';$('eventText').textContent='Wszystkie decyzje z tego tygodnia zostały podjęte. Możesz przejść do kolejnego numeru gazety.';$('next').textContent=S.week===29?'Otwórz urny wyborcze →':'Następny tydzień →';$('next').classList.remove('hidden');}
 }
-function decide(kind,index){if(!S||S.done)return;if(kind==='broadcast'&&S.phase===4){decideBroadcast(index);return;}if(kind==='event'&&S.phase===0){const e=eventForWeek(),opts=e.options||e[2],o=opts[index];if(index===99&&opts.every(x=>eventCost(x)>S.money)){apply([0,0,0,0],-1,0);log('Doraźna akcja wolontariuszy')}else{if(!o||eventCost(o)>S.money)return;if(e.options){if(e.arc||e.person)applyNarrative(index,e);const v=o[1];S.money+=v.budget||0;S.trust=clamp(S.trust+(v.trust||0),0,100);S.groups=S.groups.map(x=>clamp(x+((v.national||0)+(S.staff?.includes('press')?.25:0))*(.85+S.trust/300)*(.86+(S.people?.filter(p=>p.active).length||4)*.035),3,70));S.regional=S.regional.map(x=>clamp(x+(v.org||0)/12,0,30))}else{apply(o[1],o[2],o[3])}log((e.title||e[0])+' — '+o[0])}if(broadcastForWeek())startBroadcast();else S.phase=1;render();if(S.phase===4)renderBroadcast();else{$('feedback').textContent='Korespondent: decyzja odnotowana w gazetach.';$('feedback').classList.remove('hidden');}$('feedback').classList.remove('hidden')}else if(kind==='region'&&S.phase===1){if(index!==REGIONS.length){if(!REGIONS[index]||S.money<700)return;apply([0,0,0,0],1,700,index);S.selectedRegion=index;log('Spotkanie w regionie '+REGIONS[index].name)}else{if(S.money>=700)return;log('Brak środków na wyjazd')}S.phase=2;render()}else if(kind==='hire'&&S.phase===2){
+function decide(kind,index){if(!S||S.done)return;if(kind==='broadcast'&&S.phase===4){decideBroadcast(index);return;}if(kind==='event'&&S.phase===0){const e=eventForWeek(),opts=e.options||e[2],o=opts[index];if(index===99&&opts.every(x=>eventCost(x)>S.money)){apply([0,0,0,0],-1,0);log('Doraźna akcja wolontariuszy')}else{if(!o||eventCost(o)>S.money)return;if(e.options){if(e.arc||e.person)applyNarrative(index,e);const v=o[1];S.money+=v.budget||0;S.trust=clamp(S.trust+(v.trust||0),0,100);S.groups=S.groups.map(x=>clamp(x+((v.national||0)+(S.staff?.includes('press')?.25:0))*(.85+S.trust/300)*(.86+(S.people?.filter(p=>p.active).length||4)*.035),3,70));S.regional=S.regional.map(x=>clamp(x+(v.org||0)/12,0,30));S.groups=S.groups.map(x=>clamp(x+(v.awareness||0)*.035-(v.heat||0)*.018,3,70));S.trust=clamp(S.trust-(v.heat||0)*.10,0,100);if(v.org)S.regional[S.selectedRegion||0]=clamp(S.regional[S.selectedRegion||0]+v.org*.15,0,30)}else{apply(o[1],o[2],o[3])}log((e.title||e[0])+' — '+o[0])}if(broadcastForWeek())startBroadcast();else S.phase=1;render();if(S.phase===4)renderBroadcast();else{$('feedback').textContent='Korespondent: decyzja odnotowana w gazetach.';$('feedback').classList.remove('hidden');}$('feedback').classList.remove('hidden')}else if(kind==='region'&&S.phase===1){if(index!==REGIONS.length){if(!REGIONS[index]||S.money<700)return;apply([0,0,0,0],1,700,index);S.selectedRegion=index;log('Spotkanie w regionie '+REGIONS[index].name)}else{if(S.money>=700)return;log('Brak środków na wyjazd')}S.phase=2;render()}else if(kind==='hire'&&S.phase===2){
  const person=STAFF_ROLES[index];if(!person||S.staff.includes(person.id)||S.staff.length>=3||S.money<3200)return;
  S.money-=3200;S.staff.push(person.id);S.trust=clamp(S.trust+1,0,100);
  log('Zatrudniono: '+person.name+'.');
@@ -518,7 +518,7 @@ function updateCoalition(){
 }
 function negotiate(offer){
  const co=S.negotiations;if(co.done||co.selected===null||![0,1,2].includes(offer))return;
- const i=co.selected,p=RIVALS[i],diff=Math.abs((PROGRAM_AXIS[$('profile').value]??2)-POLITICAL_AXIS[i]),result=seats();
+ const i=co.selected,p=RIVALS[i],diff=Math.abs((PROGRAM_AXIS[S.profile||'economy']??2)-POLITICAL_AXIS[i]),result=seats();
  const chance=clamp(27+S.trust*.45-diff*9+[30,14,-14][offer]+(coalitionTotal()+result[i+1]>=91?12:0)+(S.diplomacy||0)*1.3,8,94);
  const accepted=rand()*100<chance;
  co.tried.push(i);co.round++;co.selected=null;
@@ -542,3 +542,102 @@ $('exportSave').addEventListener('click',exportSave);$('importSave').addEventLis
 $('resumeFile').addEventListener('change',e=>importSave(e.target));
 
 initializeGameTabs();
+
+// Nowa pętla kampanii: działania strategiczne, cele, konsekwencje i wydania tygodniowe.
+const LEGACY_RENDER=render, LEGACY_DECIDE=decide, LEGACY_NEXT=next;
+const PLAN_ACTIONS=[
+ {id:'field',label:'Objazd województwa',cost:700,desc:'Wzmacnia poparcie w wybranym województwie.',category:'region'},
+ {id:'media',label:'Ogólnopolska kampania medialna',cost:2400,desc:'Szeroki zasięg i wzrost poparcia.',category:'media'},
+ {id:'debate',label:'Przygotowanie do debaty',cost:950,desc:'Wiarygodność i lepsza pozycja w mediach.',category:'media'},
+ {id:'volunteers',label:'Budowa struktur lokalnych',cost:800,desc:'Długofalowe korzyści w wybranym województwie.',category:'region'},
+ {id:'fundraise',label:'Zbiórka sympatyków',cost:0,desc:'Zdobywa środki. Dostępna raz w tygodniu.',category:'finance'},
+ {id:'diplomacy',label:'Rozmowy z innymi partiami',cost:600,desc:'Przygotowuje grunt pod przyszłą koalicję.',category:'strategy'},
+ {id:'research',label:'Analiza i przygotowanie programu',cost:850,desc:'Poprawia zaufanie i program partii.',category:'strategy'},
+ {id:'rest',label:'Spotkanie z wolontariuszami',cost:0,desc:'Mały darmowy wzrost zaufania.',category:'strategy'}
+];
+function setupTurn(){
+ if(!S)return;
+ if(!S.turn){S.turn={week:S.week,points:3,done:[],snapshot:{money:S.money,trust:S.trust,poll:national()[0],seats:seats()[0]},report:null};}
+ if(S.turn.week!==S.week)S.turn={week:S.week,points:3,done:[],snapshot:{money:S.money,trust:S.trust,poll:national()[0],seats:seats()[0]},report:null};
+ if(!S.goals)S.goals={};
+}
+function campaignGoal(){
+ const i=(Math.floor(S.week/5)*3+S.seed%REGIONS.length)%REGIONS.length;
+ const target=REGIONS[i],stage=Math.floor(S.week/5),base=S.goals[stage]?.base;
+ if(!S.goals[stage])S.goals[stage]={base:pollRegion(i)[0],earned:false,region:i};
+ const g=S.goals[stage],current=pollRegion(g.region)[0],needed=g.base+2.5;
+ return {stage,region:g.region,current,needed,earned:g.earned};
+}
+function checkGoal(){
+ const g=campaignGoal();if(!g.earned&&g.current>=g.needed){
+ S.goals[g.stage].earned=true;S.trust=clamp(S.trust+3,0,100);S.regional[g.region]=clamp(S.regional[g.region]+1.5,0,30);
+ log('SUKCES MISJI: '+REGIONS[g.region].name+' — zbudowano trwałe struktury i zdobyto zaufanie.');
+ }
+}
+function makeWeeklyReport(){
+ const t=S.turn;if(!t||t.report)return;
+ const now=national()[0],old=t.snapshot;
+ const difference=now-old.poll,mandates=seats()[0]-old.seats;
+ const news=(S.rivalAI?.news||[]).filter(x=>x.week===S.week+1).slice(0,2);
+ t.report={week:S.week+1,delta:difference,mandates,spent:S.money-old.money,trust:S.trust-old.trust,news:news.map(x=>x.text),actions:[...t.done]};
+}
+function planAction(id){
+ if(!S||S.done||S.phase!==1)return;
+ setupTurn();const a=PLAN_ACTIONS.find(v=>v.id===id);if(!a||S.turn.points<=0||S.money<a.cost)return;
+ if(id==='fundraise'&&S.turn.done.includes('fundraise'))return;
+ if(id==='rest'&&S.turn.done.includes('rest'))return;
+ const r=Number.isInteger(S.selectedRegion)?S.selectedRegion:0;
+ S.money-=a.cost;
+ if(id==='field'){apply([0,0,0,0],1,0,r);S.regional[r]=clamp(S.regional[r]+.4,0,30)}
+ if(id==='volunteers'){S.regional[r]=clamp(S.regional[r]+2.1,0,30)}
+ if(id==='media')apply([1.8,1.8,1.8,1.8],0,0);
+ if(id==='debate')apply([.4,.5,.5,.5],3,0);
+ if(id==='fundraise'){const n=2200+(S.staff.includes('finance')?650:0);S.money+=n;S.trust=clamp(S.trust-1,0,100)}
+ if(id==='diplomacy'){S.diplomacy=clamp((S.diplomacy||0)+3,0,30)}
+ if(id==='research')apply([.5,.5,.5,.5],3,0);
+ if(id==='rest')S.trust=clamp(S.trust+1,0,100);
+ S.turn.points--;S.turn.done.push(id);log('Działanie: '+a.label);checkGoal();
+ if(S.turn.points===0)finishTurn();else render();
+}
+function finishTurn(){
+ if(!S||S.done)return;setupTurn();makeWeeklyReport();S.done=true;render();
+}
+function planningMarkup(){
+ const goal=campaignGoal(),sel=REGIONS[S.selectedRegion||0];
+ const target=REGIONS[goal.region].name;
+ const progress=Math.max(0,Math.min(100,(goal.current/goal.needed)*100)).toFixed(0);
+ return '<div class="turn-planner"><div class="kicker">PLAN TYGODNIA · '+S.turn.points+' / 3 PUNKTY DZIAŁAŃ</div>'+
+ '<p class="small">Sam wybierasz trzy działania. Możesz powtórzyć część akcji albo zakończyć tydzień wcześniej.</p>'+
+ '<div class="frame"><strong>CEL ROZDZIAŁU: '+esc(target)+'</strong><p class="small">Osiągnij '+goal.needed.toFixed(1)+'% poparcia. Teraz: '+goal.current.toFixed(1)+'%.'+(goal.earned?' Cel osiągnięty — bonus przyznany.':' Nagroda: trwałe struktury i +3 wiarygodności.')+'</p><div class="bar"><div class="barfill you" style="width:'+progress+'%"></div></div></div>'+
+ '<label class="field"><span>Cel regionalnych działań</span><select id="planRegion">'+REGIONS.map((r,i)=>'<option value="'+i+'" '+(S.selectedRegion===i?'selected':'')+'>'+esc(r.name)+' — '+pollRegion(i)[0].toFixed(1)+'%</option>').join('')+'</select></label>'+
+ PLAN_ACTIONS.map(a=>'<button class="option" data-kind="plan" data-plan="'+a.id+'" '+(S.money<a.cost||(a.id==='fundraise'&&S.turn.done.includes(a.id))||(a.id==='rest'&&S.turn.done.includes(a.id))?'disabled':'')+'><strong>'+esc(a.label)+'</strong><small>'+esc(a.desc)+' · '+(a.cost?moneyFmt(a.cost):'za darmo')+'</small></button>').join('')+
+ '<button class="btn alt" data-kind="plan-finish">Zakończ planowanie tygodnia</button></div>';
+}
+function reportMarkup(){
+ const t=S.turn?.report;if(!t)return '';
+ const val=(n,unit)=>((n>=0?'+':'')+n.toFixed(1)+unit);
+ return '<section class="weekly-edition frame"><div class="kicker">DZIENNIK WYBORCZY / WYDANIE '+t.week+'</div><h2>TYDZIEŃ ZAMKNIĘTY</h2><p>Poparcie: <strong>'+val(t.delta,' pp')+'</strong> · Mandaty: <strong>'+((t.mandates>=0?'+':'')+t.mandates)+'</strong> · Zaufanie: <strong>'+((t.trust>=0?'+':'')+t.trust)+'</strong></p><p>Bilans: '+moneyFmt(t.spent)+' · Wykonane działania: '+(t.actions.map(id=>esc(PLAN_ACTIONS.find(a=>a.id===id)?.label||id)).join(', ')||'brak')+'.</p>'+
+ (t.news.length?'<h3>Z OSTATNIEJ CHWILI</h3><p>'+t.news.map(esc).join('</p><p>')+'</p>':'')+'</section>';
+}
+render=function(){
+ if(!S)return;setupTurn();LEGACY_RENDER();
+ if(S.phase===1&&!S.done){
+ $('phase').textContent='TWOJA STRATEGIA · TYDZIEŃ '+(S.week+1);
+ $('eventTitle').textContent='Zaplanuj działania sztabu';
+ $('eventText').textContent='Wybierz priorytety kampanii na ten tydzień.';
+ $('choices').innerHTML=planningMarkup();
+ if($('stepHint'))$('stepHint').textContent='Pozostało '+S.turn.points+' z 3 punktów działań. Najpierw wybierz region, potem zaplanuj akcje.';
+ }
+ if(S.done&&S.turn?.report){
+ $('eventText').textContent='Przeczytaj wydanie tygodnia i przejdź dalej.';
+ $('choices').innerHTML=reportMarkup();
+ }
+};
+decide=function(kind,index){
+ if(kind==='plan')return planAction(index);
+ if(kind==='plan-finish')return finishTurn();
+ return LEGACY_DECIDE(kind,index);
+};
+next=function(){if(!S?.done)return;const oldWeek=S.week;LEGACY_NEXT();if(S&&S.week!==oldWeek){S.turn=null;setupTurn();render();}};
+$('choices').addEventListener('change',e=>{if(e.target.id==='planRegion'&&S){S.selectedRegion=clamp(Number(e.target.value)||0,0,REGIONS.length-1);render();}});
+$('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-plan],button[data-kind="plan-finish"]');if(!b)return;e.stopPropagation();if(b.dataset.plan)planAction(b.dataset.plan);else finishTurn();});
