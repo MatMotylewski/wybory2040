@@ -667,3 +667,26 @@ decide=function(kind,index){
 next=function(){if(!S?.done)return;const oldWeek=S.week;LEGACY_NEXT();if(S&&S.week!==oldWeek){S.turn=null;setupTurn();render();}};
 $('choices').addEventListener('change',e=>{if(!S)return;if(e.target.id==='planRegion'){S.selectedRegion=clamp(Number(e.target.value)||0,0,REGIONS.length-1);render();}else if(e.target.id==='planCategory'){setupTurn();S.turn.category=e.target.value;render();}});
 $('choices').addEventListener('click',e=>{const b=e.target.closest('button[data-plan],button[data-kind="plan-finish"]');if(!b)return;e.stopPropagation();if(b.dataset.plan)planAction(b.dataset.plan);else finishTurn();});
+
+
+// Automatyczny zapis pozostaje na urządzeniu gracza; nie jest wysyłany na serwer.
+const AUTO_SAVE_KEY='wybory2040.autosave.v3';
+function saveAutomatically(){
+ if(!S||typeof localStorage==='undefined')return;
+ try{localStorage.setItem(AUTO_SAVE_KEY,JSON.stringify({format:'wybory2040-save',version:3,state:S}));}catch(e){/* Prywatne okno lub pełny magazyn — zapis do pliku nadal działa. */}
+}
+function refreshAutoResume(){
+ if(typeof localStorage==='undefined')return;
+ try{$('resumeAuto')?.classList.toggle('hidden',!localStorage.getItem(AUTO_SAVE_KEY));}catch(e){}
+}
+const RENDER_WITH_REPORT=render;
+render=function(){RENDER_WITH_REPORT();saveAutomatically();};
+const FINALIZE_WITH_AUTOSAVE=finish;
+finish=function(){FINALIZE_WITH_AUTOSAVE();saveAutomatically();};
+$('resumeAuto')?.addEventListener('click',async()=>{
+ if(typeof localStorage==='undefined')return;
+ try{const json=localStorage.getItem(AUTO_SAVE_KEY);if(!json) return;
+ await importSave({files:[{size:json.length,text:async()=>json}],value:''});}
+ catch(e){$('saveInfo').textContent='Nie udało się odczytać zapisu: '+e.message;}
+});
+refreshAutoResume();
