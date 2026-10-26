@@ -38,3 +38,11 @@ Przeprowadzono 72 pełne symulacje logiki kampanii w trzech poziomach trudności
 
 ## Publikacja
 GitHub Pages można uruchomić później przez **Settings → Pages → Deploy from a branch → main / root**. Sama obecność kodu w repo nie oznacza publikacji strony.
+
+## Pamięć decyzji i archiwum polityka
+
+Nowa zakładka **Teczka polityka** zawiera podjęte decyzje, sprawy w toku, obietnice i bilanse zakończonych pięciotygodniowych rozdziałów. Wydarzenia z następstwami otrzymują odwołania do wcześniejszego wyboru. Obietnice wykrywane są na podstawie deklaracji w wydarzeniach i można je realizować kolejnymi działaniami; niespełnione w terminie powodują spadek wiarygodności. Styl lidera (reformator, negocjator, polityczny wojownik, działacz terenowy) wynika z historii działań, a nie wyglądu postaci. Całość pozostaje w automatycznym zapisie.
+
+## Telefony i responsywność
+
+Interfejs ma responsywne reguły CSS, w tym szerokości do 680 px: przewijane dotykowo zakładki, wygodniejsze przyciski, dwukolumnowe statystyki oraz układ portretów w dwóch kolumnach. Mapa skaluje się razem z ekranem. **Testy logiki nie zastępują ręcznego przeglądu w mobilnej przeglądarce** (zwłaszcza Safari na iPhonie i Android Chrome). Jeśli strona jest uruchamiana lokalnie z `file://`, zachowanie pamięci przeglądarki może być różne; wygodniej używać Live Server lub hostingu.
