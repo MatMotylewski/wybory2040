@@ -373,6 +373,27 @@ function forecastPanel(){
  '<p class="small">Niezdecydowani w każdym regionie mogą zmienić wynik. Prognoza nie jest gwarancją wyniku.</p></div>';
 }
 
+
+const EPILOG_TITLES={mandate:'SAMODZIELNE RZĄDY',coalition:'RZĄD KOALICYJNY',opposition:'LIDER OPOZYCJI',minority:'ŁAWY OPOZYCJI',out:'POZA PARLAMENTEM'};
+function campaignEpilogue(){
+ const places=seats(),own=places[0],total=S.negotiations?.accepted?.length?coalitionTotal():own;
+ const regime=own>=91?'mandate':total>=91?'coalition':own===0?'out':own===Math.max(...places)?'opposition':'minority';
+ const finance=initFinance(),friends=S.people?.filter(p=>p.active).length||0;
+ const historic=(S.arcs?.fundusz==='hidden'?' Opozycja przypomina niejawne finansowanie.':'')+
+  (S.arcs?.fabryka==='workers'?' Organizacje pracownicze pamiętają Twoje wsparcie.':'')+
+  (S.arcs?.redakcja==='independent'?' Dziennikarze doceniają niezależność redakcji.':'');
+ const score=regime==='mandate'?4:regime==='coalition'?3:regime==='opposition'?2:regime==='minority'?1:0;
+ const tone=score>=3?'Obywatele powierzyli Ci odpowiedzialność za powołanie gabinetu.':score===2?'Największe ugrupowanie pozostaje poza gabinetem i organizuje kontrolę rządu.':score===1?'Partia będzie budować wpływy i pracować nad kolejnymi wyborami.':'Projekt polityczny będzie wymagał odbudowania od podstaw.';
+ return '<section class="epilogue frame"><div class="kicker">KRONIKA POWYBORCZA / EPILOG</div><h3 class="section-title">'+EPILOG_TITLES[regime]+'</h3>'+
+ '<p>'+esc(tone+historic)+'</p>'+
+ '<div class="group"><span>Ocena mandatu wyborczego</span><b>'+own+' z 180</b></div>'+
+ '<div class="group"><span>Wiarygodność</span><b>'+S.trust+'/100</b></div>'+
+ '<div class="group"><span>Lojalni współpracownicy</span><b>'+friends+'/4</b></div>'+
+ '<div class="group"><span>Zaległości i zadłużenie</span><b>'+moneyFmt(finance.arrears+finance.debt)+'</b></div>'+
+ '<p class="small">Ostateczny bilans zależy od poprzednich decyzji i zawartych porozumień.</p></section>';
+}
+function renderEpilogue(){const slot=$('epilogue');if(slot&&S)slot.innerHTML=campaignEpilogue();}
+
 let S=null;
 function safeNum(n){return Math.round(n).toLocaleString('pl-PL')}
 function rand(){S.seed=(Math.imul(S.seed,1664525)+1013904223)>>>0;return S.seed/4294967296}
@@ -412,7 +433,7 @@ function decide(kind,index){if(!S||S.done)return;if(kind==='broadcast'&&S.phase=
  S.done=true;render();$('feedback').textContent='Plan strategiczny zakończony. Przed wyborami pozostało '+(30-S.week)+' tygodni.';$('feedback').classList.remove('hidden');
 }}
 function next(){if(!S||!S.done)return;if(S.week===29){finish();return}ensureNarrative();for(const p of S.people.filter(x=>x.active)){const pressure=(S.money<2500?2:0)+(S.trust<42?1:0)+(S.week>=13?1:0);p.loyalty=clamp(p.loyalty-pressure+(S.staff.length>=2?1:0),0,100);}S.week++;weeklyAccounts();auditSponsors();runRivals();S.phase=0;S.done=false;render();document.querySelector('.article').scrollIntoView({behavior:'smooth'})}
-function finish(){const n=national(),result=seats(),order=result.map((v,i)=>({i,v})).sort((a,b)=>b.v-a.v);$('outcome').textContent=order[0].i===0?'Zwycięstwo wyborcze!':'Werdykt wyborców';$('resultPct').textContent=n[0].toFixed(1)+'%';$('resultText').textContent=S.name+' zdobywa '+result[0]+' ze 180 mandatów. Do większości potrzeba 91 mandatów.';$('finalPoll').innerHTML=result.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v+' mandatów · '+n[i].toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+(v/180*100).toFixed(1)+'%"></div></div></div>').join('');$('coalitionButton').classList.toggle('hidden',result[0]===0);show('end')}
+function finish(){const n=national(),result=seats(),order=result.map((v,i)=>({i,v})).sort((a,b)=>b.v-a.v);$('outcome').textContent=order[0].i===0?'Zwycięstwo wyborcze!':'Werdykt wyborców';$('resultPct').textContent=n[0].toFixed(1)+'%';$('resultText').textContent=S.name+' zdobywa '+result[0]+' ze 180 mandatów. Do większości potrzeba 91 mandatów.';$('finalPoll').innerHTML=result.map((v,i)=>'<div class="poll-item"><div class="poll-label"><span>'+esc(names()[i])+'</span><b>'+v+' mandatów · '+n[i].toFixed(1)+'%</b></div><div class="bar"><div class="barfill '+(i===0?'you':'')+'" style="width:'+(v/180*100).toFixed(1)+'%"></div></div></div>').join('');$('coalitionButton').classList.toggle('hidden',result[0]===0);show('end');renderEpilogue()}
 const POLITICAL_AXIS=[2,3,1,4,0],PROGRAM_AXIS={economy:4,social:1,green:0,freedom:2};
 function coalition(){
  if(!S.negotiations)S.negotiations={accepted:[],tried:[],selected:null,round:0,done:false,message:''};
@@ -442,6 +463,7 @@ function updateCoalition(){
   '<button class="option" data-coalition-offer="2"><strong>Twarde stanowisko</strong><small>Mało ustępstw, trudniej o zgodę, +2 wiarygodności.</small></button>'+
   '<button class="btn alt" data-coalition-action="back">Wybierz innego partnera</button>';
  }
+ renderEpilogue();
  $('coalitionResult').textContent=co.message||('Do większości brakuje '+Math.max(0,91-total)+' mandatów.');
 }
 function negotiate(offer){
