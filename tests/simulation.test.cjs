@@ -11,10 +11,10 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 function boot(){
  const nodes=new Map();
  function getElementById(id){
-  if(!nodes.has(id))nodes.set(id,{id,value:id==='partyName'?'Komitet Testowy':id==='profile'?'economy':'',innerHTML:'',textContent:'',classList:{add(){},remove(){},toggle(){}},addEventListener(){},scrollIntoView(){},click(){},files:[]});
+  if(!nodes.has(id))nodes.set(id,{id,value:id==='partyName'?'Komitet Testowy':id==='profile'?'economy':'',innerHTML:'',textContent:'',style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},scrollIntoView(){},click(){},files:[]});
   return nodes.get(id);
  }
- const doc={getElementById,querySelector:()=>getElementById('article'),querySelectorAll:()=>[],createElement:()=>({click(){}})};
+ const doc={getElementById,querySelector:()=>getElementById('article'),querySelectorAll:()=>[],createElement:()=>({click(){}}),addEventListener(){}};
  const ctx={window:{WYBORY_DATA:null,scrollTo(){}},document:doc,navigator:{clipboard:{writeText:()=>Promise.resolve()}},
   Blob:class{},URL:{createObjectURL:()=>'',revokeObjectURL(){}},setTimeout:()=>{},alert:()=>{}};
  vm.createContext(ctx);
@@ -30,6 +30,8 @@ test('static assets and narrative library',()=>{
  const {data}=boot();
  assert.equal(data.pool.length,144);
  assert.equal(data.regions.length,9);
+ assert.match(html,/id="electionAtlas"/);
+ assert.match(html,/id="staffDesk"/);
  assert.equal(Object.keys(data.milestones).length,6);
 });
 test('40 complete, distinct campaigns through parliament and coalition',()=>{
@@ -38,6 +40,7 @@ test('40 complete, distinct campaigns through parliament and coalition',()=>{
  for(let sim=0;sim<40;sim++){
   get('profile').value=['economy','social','green','freedom'][sim%4];
   api.start();api.getState().seed=sim*1901+347;
+  if(sim===0){assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,9,'nine clickable map regions');assert.equal((get('staffDesk').innerHTML.match(/class="staff-person"/g)||[]).length,4,'four staff character cards');}
   for(let week=0;week<30;week++){
    const e=api.eventForWeek();headlines.add(e.title||e[0]);
    const opts=e.options||e[2];
