@@ -21,6 +21,8 @@ test('full library and newspaper interface',()=>{
  assert.match(html,/id="planCategory"|id="stepHint"/);
  assert.match(html,/id="candidateOrigin"/);
  assert.match(html,/id="resumeAuto"/);
+ assert.match(html,/data-game-tab="legacy"/);
+ assert.match(html,/id="politicalReminder"/);
  api.start();
  assert.equal((get('electionAtlas').innerHTML.match(/data-atlas-region/g)||[]).length,16);
  assert.match(get('electionAtlas').innerHTML,/<path class="territory/);
@@ -51,12 +53,15 @@ test('72 campaigns complete across difficulty, origins and strategy',()=>{
    for(const a of actions)api.planAction(a);
    if(!api.getState().done)api.finishTurn();
    assert.ok(api.getState().turn.report,'newspaper weekly edition');
+   assert.ok(api.getState().legacy.decisions.length>0,'political archive records choices');
    assert.ok(storage.size>0,'autosave persists');
    assert.ok(api.getState().money>=0,'nonnegative treasury');
    api.next();
   }
   assert.equal(api.seats().reduce((a,b)=>a+b,0),180);
   assert.equal(Object.keys(api.getState().arcs).length,6);
+  assert.ok(api.getState().legacy.chapters.length>=5,'five-week chapter reports exist');
+  assert.ok(api.getState().legacy.promises.every(p=>['ongoing','fulfilled','broken'].includes(p.status)),'promise lifecycle is valid');
   assert.match(get('epilogue').innerHTML,/EPILOG/);
   api.coalition();
   let c=api.getState().negotiations;
