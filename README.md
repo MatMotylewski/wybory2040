@@ -56,3 +56,13 @@ Po instalacji Node.js uruchom `npm test` w katalogu repozytorium. Testy znajduj�
 W tygodniach **5, 11, 19 i 26** gra przełącza się na trzyrundowy format rozmowy: dwie debaty wyborcze, wywiad dla gazety i kryzys medialny. Odpowiedzi wpływają na wiarygodność, zainteresowanie mediów, poparcie oraz lojalność rzecznika. Wydarzenia są częścią rozgrywki, więc nie można ich pominąć; zapisy stanu obsługują także trwającą debatę. Scenariusze są fikcyjne.
 
 Test automatyczny przechodzi również przez wszystkie 12 rund specjalnych w każdym z 40 scenariuszy kampanii.
+
+## Finanse i gospodarka sztabu
+
+- Księga rachunkowa pokazuje stan gotówki, zaległości i zadłużenie.
+- Można otwierać maksymalnie dwa biura na region, każde z tygodniowym kosztem utrzymania.
+- Dostępne są jawne pożyczki z kosztem spłaty, czterej fikcyjni darczyńcy i spłata zaległości.
+- Niektóre źródła finansowania powodują późniejsze wydarzenia reputacyjne.
+- Rozliczenie tygodniowe obejmuje składki, biura oraz koszty specjalistów; w razie braku środków rosną zaległości zamiast blokować grę.
+
+Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z pożyczkami i wydatkami na biura. Wyniki dotyczą testów symulacyjnych, nie pełnego testu graficznego w przeglądarce.
