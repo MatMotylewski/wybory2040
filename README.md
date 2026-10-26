@@ -82,3 +82,12 @@ Po aktualizacji przetestowano 50 pełnych 30-tygodniowych kampanii, także z po�
 - Panel prognozy pokazuje mandaty, dystans do większości i regiony, w których rywalizacja jest wyrównana.
 - Powtarzanie tej samej taktyki w kolejnych tygodniach przynosi malejące korzyści.
 - Przetestowano 36 pełnych rozgrywek na trzech poziomach trudności. Średnia mandatów partii gracza w tej próbce: Debiutant 110, Standard około 79, Weteran około 49. To orientacyjny wynik określonych automatycznych strategii, nie pełny balans.
+
+## Wydanie kandydackie 1.0 — cztery etapy rozbudowy
+
+- **Fabuła i zakończenia:** epilogi zależne od wyniku mandatowego, koalicji, wcześniejszych decyzji, stanu kasy i lojalności sztabu.
+- **Mechanika:** trzy poziomy trudności, aktywni rywale, niezdecydowani wyborcy, malejące efekty powtarzania taktyk i trzy rundy rozmów koalicyjnych.
+- **Interfejs:** samouczek z poziomu kampanii, poprawki mobilne, dostępne opisy SVG mapy, tryb ograniczonego ruchu, gazetowy ekran epilogu.
+- **Testy:** 42 automatyczne pełne kampanie (po 14 na każdy poziom) zakończyły się poprawnie wraz z debatami, liczeniem 180 mandatów, epilogami i negocjacjami. Weryfikacja funkcjonalna nie zastępuje testów wizualnych ani pomiaru realnych 150–180 minut gry.
+
+**Stan publikacji:** kod jest na gałęzi `main`; GitHub Pages nie zostało automatycznie włączone przez narzędzia repozytorium. Aby opublikować grę, właściciel musi wejść w `Settings → Pages` i wybrać `Deploy from a branch → main → / (root)`. Nie należy uznawać gry za wydaną publicznie, dopóki adres strony nie odpowiada prawidłowo i nie zakończą się testy przeglądarkowe.
