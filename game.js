@@ -258,6 +258,51 @@ function hireLeader(roleId,candidateId){
  syncLeadership();log('Zatrudniono '+candidate.name+' na stanowisko: '+role.title+'.');
  render();return true;
 }
+
+let selectedPolitician='treasurer';
+function characterRatings(p){
+ const skill=Math.max(0,Number(p.skill)||0),loyalty=clamp(Number(p.loyalty)||0,0,100);
+ return {support:clamp(Math.round(6+skill*7+loyalty*.08+(S.trust-50)*.07),1,45),
+ debate:clamp(Math.round(25+skill*22+(p.id==='spokesperson'?17:0)+(p.level||0)*3),0,100),
+ controversy:clamp(Math.round(55-loyalty*.45+Math.max(0,S.heat||0)*.15),0,100)};
+}
+function renderCharacterCards(){
+ const target=$('charactersDesk');if(!target||!S)return;
+ ensureNarrative();
+ const cards=S.people.filter(p=>p.active);
+ if(!cards.some(p=>p.id===selectedPolitician))selectedPolitician=cards[0]?.id||null;
+ const detail=cards.find(p=>p.id===selectedPolitician);
+ target.innerHTML='<div class="kicker">ARCHIWUM POLITYCZNE</div><h2 class="section-title">Karty postaci</h2>'+
+ '<p class="small">Poparcie osobiste, umiejętności i poziom kontrowersji to parametry poglądowe. Nie są jeszcze osobnymi sondażami ani mechaniką wyborów prezydenckich.</p>'+
+ '<div class="character-list">'+BOARD_FIELDS.map(role=>{
+ const p=S.people.find(x=>x.id===role.id&&x.active);
+ if(!p)return '<section class="politician-card"><strong>'+esc(role.title)+'</strong><p>Stanowisko nieobsadzone</p><button data-character-hire="'+role.id+'">Przejdź do rekrutacji</button></section>';
+ const st=characterRatings(p);
+ return '<section class="politician-card"><div class="kicker">'+esc(role.title)+'</div><h3>'+esc(p.name)+'</h3><p class="small">'+esc(p.flavor||'Członek kierownictwa')+'</p>'+
+ '<div class="group"><span>Poparcie osobiste (ocena)</span><b>'+st.support+'%</b></div>'+
+ '<div class="group"><span>Lojalność</span><b>'+p.loyalty+'/100</b></div>'+
+ '<button data-character-open="'+role.id+'">Otwórz kartę postaci</button></section>';
+ }).join('')+'</div>'+
+ (detail?(()=>{const st=characterRatings(detail),role=BOARD_FIELDS.find(x=>x.id===detail.id);return '<article class="character-detail"><div class="kicker">TEKSTOWA KARTA POLITYKA · '+esc(role?.title||detail.role)+'</div>'+
+ '<h2>'+esc(detail.name)+'</h2><p>'+esc(detail.flavor||'Działacz partyjny')+'</p>'+
+ '<div class="politician-stats">'+
+ '<div class="group"><span>Poparcie osobiste*</span><b>'+st.support+'%</b></div>'+
+ '<div class="group"><span>Lojalność</span><b>'+detail.loyalty+'/100</b></div>'+
+ '<div class="group"><span>Debaty</span><b>'+st.debate+'/100</b></div>'+
+ '<div class="group"><span>Ryzyko kontrowersji*</span><b>'+st.controversy+'/100</b></div>'+
+ '<div class="group"><span>Umiejętności</span><b>'+Number(detail.skill).toFixed(2)+'</b></div>'+
+ '<div class="group"><span>Poziom doświadczenia</span><b>'+detail.level+'/3</b></div>'+
+ '<div class="group"><span>Pensja tygodniowo</span><b>'+moneyFmt(detail.weekly)+'</b></div>'+
+ '<div class="group"><span>W partii od</span><b>'+(Number.isInteger(detail.hiredWeek)?'tygodnia '+(detail.hiredWeek+1):'początku')+'</b></div></div>'+
+ '<p class="small">*Wartości modelowe stworzone na potrzeby przyszłych systemów kariery politycznej. Nie są badaniami opinii publicznej ani stwierdzeniem faktycznych afer.</p>'+
+ '<button data-character-staff="1">Przejdź do zarządzania sztabem</button></article>'})():'<p>Nie masz obecnie żadnych polityków w kierownictwie.</p>');
+}
+document.addEventListener('click',e=>{
+ const open=e.target.closest('[data-character-open]');if(open&&S){selectedPolitician=open.dataset.characterOpen;renderCharacterCards();return;}
+ const hire=e.target.closest('[data-character-hire]');if(hire){window.openGameTab?.('staff');return;}
+ const staff=e.target.closest('[data-character-staff]');if(staff){window.openGameTab?.('staff');}
+});
+
 function renderStaffDesk(){
  const target=$('staffDesk');if(!target||!S)return;ensureNarrative();
  const occupied=S.people.filter(p=>p.active).length;
@@ -526,7 +571,7 @@ function initializeGameTabs(){
  const tabs=[...document.querySelectorAll('[data-game-tab]')];if(!tabs.length)return;
  const root=$('game'),columns=root.querySelector('.columns');if(!columns)return;
  const article=root.querySelector('.article');
- const sectionIds=['campaign','regions','polls','staff','media','finance','legacy'];
+ const sectionIds=['campaign','regions','polls','staff','media','finance','legacy','characters'];
  const targets={campaign:article,regions:root.querySelector('.atlas-wrap'),polls:$('poll'),staff:$('staffDesk'),media:$('rivalDesk'),finance:$('financeDesk'),legacy:$('legacyDesk')};
  const panes={};
  for(const id of sectionIds){const pane=document.createElement('section');pane.className='game-pane';pane.dataset.pane=id;pane.hidden=id!=='campaign';panes[id]=pane;root.appendChild(pane);}
@@ -536,7 +581,7 @@ function initializeGameTabs(){
  append(panes.polls,['poll','groups','forecastDesk']);
  append(panes.staff,['staffDesk']);
  append(panes.media,['history','rivalDesk']);
- append(panes.finance,['financeDesk']);const archive=document.createElement('div');archive.id='legacyDesk';panes.legacy.appendChild(archive);
+ append(panes.finance,['financeDesk']);const archive=document.createElement('div');archive.id='legacyDesk';panes.legacy.appendChild(archive);const characters=document.createElement('div');characters.id='charactersDesk';panes.characters.appendChild(characters);
  columns.classList.add('hidden');
  function switchTab(id){
   if(!panes[id])return;activeGameTab=id;
@@ -973,7 +1018,7 @@ next=function(){
 };
 const MEMORY_RENDER=render;
 render=function(){
- MEMORY_RENDER();
+ MEMORY_RENDER();renderCharacterCards();
  if(!S)return;
  ensureLegacy();legacyView();
  const notice=$('politicalReminder'),r=S.legacy.lastReminder;
