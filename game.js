@@ -392,6 +392,34 @@ function campaignEpilogue(){
 }
 function renderEpilogue(){const slot=$('epilogue');if(slot&&S)slot.innerHTML=campaignEpilogue();}
 
+
+let activeGameTab='campaign';
+function initializeGameTabs(){
+ const tabs=[...document.querySelectorAll('[data-game-tab]')];if(!tabs.length)return;
+ const root=$('game'),columns=root.querySelector('.columns');if(!columns)return;
+ const article=root.querySelector('.article');
+ const sectionIds=['campaign','regions','polls','staff','media','finance'];
+ const targets={campaign:article,regions:root.querySelector('.atlas-wrap'),polls:$('poll'),staff:$('staffDesk'),media:$('rivalDesk'),finance:$('financeDesk')};
+ const panes={};
+ for(const id of sectionIds){const pane=document.createElement('section');pane.className='game-pane';pane.dataset.pane=id;pane.hidden=id!=='campaign';panes[id]=pane;root.appendChild(pane);}
+ panes.campaign.appendChild(article);
+ panes.regions.appendChild(targets.regions);
+ const append=(pane,ids)=>ids.forEach(id=>{const n=$(id);if(n)pane.appendChild(n)});
+ append(panes.polls,['poll','groups','forecastDesk']);
+ append(panes.staff,['characterRoster','staffDesk']);
+ append(panes.media,['history','rivalDesk']);
+ append(panes.finance,['financeDesk']);
+ columns.classList.add('hidden');
+ function switchTab(id){
+  if(!panes[id])return;activeGameTab=id;
+  for(const key of sectionIds)panes[key].hidden=key!==id;
+  tabs.forEach(b=>{const selected=b.dataset.gameTab===id;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected));});
+ }
+ tabs.forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.gameTab)));
+ window.openGameTab=switchTab;
+ switchTab('campaign');
+}
+
 let S=null;
 function safeNum(n){return Math.round(n).toLocaleString('pl-PL')}
 function rand(){S.seed=(Math.imul(S.seed,1664525)+1013904223)>>>0;return S.seed/4294967296}
@@ -488,3 +516,5 @@ $('start').addEventListener('click',start);$('restart').addEventListener('click'
 
 $('exportSave').addEventListener('click',exportSave);$('importSave').addEventListener('change',e=>importSave(e.target));
 $('resumeFile').addEventListener('change',e=>importSave(e.target));
+
+initializeGameTabs();
