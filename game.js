@@ -534,7 +534,7 @@ function initializeGameTabs(){
  panes.regions.appendChild(targets.regions);
  const append=(pane,ids)=>ids.forEach(id=>{const n=$(id);if(n)pane.appendChild(n)});
  append(panes.polls,['poll','groups','forecastDesk']);
- append(panes.staff,['characterRoster','staffDesk']);
+ append(panes.staff,['staffDesk']);
  append(panes.media,['history','rivalDesk']);
  append(panes.finance,['financeDesk']);const archive=document.createElement('div');archive.id='legacyDesk';panes.legacy.appendChild(archive);
  columns.classList.add('hidden');
